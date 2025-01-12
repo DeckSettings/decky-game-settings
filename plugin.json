@@ -1,11 +1,11 @@
 {
-  "name": "Game Settings",
+  "name": "Deck Settings",
   "author": "Josh.5",
   "flags": ["debug", "_root"],
   "api_version": 1,
   "publish": {
     "tags": ["template", "root"],
     "description": "Decky game settings plugin.",
-    "image": "https://opengraph.githubassets.com/1/SteamDeckHomebrew/PluginLoader"
+    "image": "https://opengraph.githubassets.com/1/DeckSettings/decky-game-settings"
   }
 }
