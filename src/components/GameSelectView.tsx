@@ -40,10 +40,6 @@ const GameSelectView: React.FC<{ onGameSelect: (game: GameInfo) => void }> = ({o
         game.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const setShowSettings = () => {
-        console.log(`Show Plugin Settings`);
-    };
-
     const handleGameSelect = (game: GameInfo) => {
         console.log(`Selected game [AppID:${game.appId}, Title:${game.title}]`);
         onGameSelect(game);
@@ -51,18 +47,6 @@ const GameSelectView: React.FC<{ onGameSelect: (game: GameInfo) => void }> = ({o
 
     return (
         <div>
-            <PanelSection>
-                <PanelSectionRow>
-                    <ButtonItem
-                        layout="below"
-                        onClick={() => setShowSettings()}
-                    >
-                        Go To Settings
-                    </ButtonItem>
-                </PanelSectionRow>
-            </PanelSection>
-            <hr/>
-
             {currentlyRunningGame ? (
                 <PanelSection title="Current Game">
                     <PanelSectionRow key={`${currentlyRunningGame.appId}${currentlyRunningGame.title}`}>

@@ -1,38 +1,21 @@
 import React, {useEffect, useState} from 'react';
-import {ButtonItem, PanelSection, PanelSectionRow} from "@decky/ui";
+import {ButtonItem, DialogButton, Focusable, Navigation, PanelSection, PanelSectionRow, Router} from "@decky/ui";
 import {fetchNoCors} from "@decky/api";
 import GameReportView from "./GameReportView";
-
-interface GameDataViewProps {
-    gameName: string;
-    appId?: number;
-    onGoBack: () => void;
-}
-
-interface GameDetails {
-    gameName: string;
-    appId?: number;
-    metadata: GameMetadata;
-    reports: any[];
-}
-
-interface GameMetadata {
-    banner: string;
-    poster: string;
-    hero: string;
-}
+import {reportsApiBaseUrl, reportsWebsiteBaseUrl} from "../constants";
+import type {GameDataViewProps, GameDetails} from "../constants";
+import {MdArrowBack, MdWeb} from "react-icons/md";
 
 const GameDataView: React.FC<GameDataViewProps> = ({gameName, appId, onGoBack}) => {
     const [isLoading, setIsLoading] = useState(false);
     const [gameDetails, setGameDetails] = useState<GameDetails | null>(null);
-    const [selectedReport, setSelectedReport] = useState<any>(null);
 
     useEffect(() => {
         const fetchData = async () => {
             if (appId) {
                 setIsLoading(true);
                 try {
-                    const url = `https://deckverified.test.streamingtech.co.nz/deck-verified/api/v1/game_details?appid=${appId}&include_external=false`;
+                    const url = `${reportsApiBaseUrl}/game_details?appid=${appId}&include_external=false`;
                     console.log(url)
                     const res = await fetchNoCors(url, {
                         method: 'GET'
@@ -52,10 +35,16 @@ const GameDataView: React.FC<GameDataViewProps> = ({gameName, appId, onGoBack}) 
         fetchData();
     }, [appId]);
 
+    const [selectedReport, setSelectedReport] = useState<any>(null);
     const handleReportSelect = (gameReport) => {
         console.log(`Selected game report ${gameReport.title}`);
         setSelectedReport(gameReport);
     };
+
+    const openWeb = (url: string) => {
+        Navigation.NavigateToExternalWeb(url)
+        Router.CloseSideMenus()
+    }
 
     return (
         <div>
@@ -66,12 +55,30 @@ const GameDataView: React.FC<GameDataViewProps> = ({gameName, appId, onGoBack}) 
                 />
             ) : (
                 <div>
-                    <PanelSection>
-                        <ButtonItem layout="below" bottomSeparator="none" onClick={onGoBack}>
-                            Go Back
-                        </ButtonItem>
-                    </PanelSection>
-                    <hr/>
+                    <div>
+                        <PanelSection>
+                            <Focusable style={{display: 'flex', alignItems: 'center', gap: '1rem'}}
+                                       flow-children="horizontal">
+                                <DialogButton
+                                    style={{width: '50%', minWidth: 0}}
+                                    onClick={onGoBack}>
+                                    <MdArrowBack/>
+                                </DialogButton>
+                                <DialogButton
+                                    style={{width: '50%', minWidth: 0}}
+                                    onClick={() => {
+                                        if (appId) {
+                                            openWeb(`${reportsWebsiteBaseUrl}/app/${appId}`);
+                                        } else {
+                                            openWeb(`${reportsWebsiteBaseUrl}/game/${gameName}`);
+                                        }
+                                    }}>
+                                    <MdWeb/>
+                                </DialogButton>
+                            </Focusable>
+                        </PanelSection>
+                        <hr/>
+                    </div>
 
                     <PanelSection title={gameName}>
                         {isLoading ? (
@@ -92,10 +99,10 @@ const GameDataView: React.FC<GameDataViewProps> = ({gameName, appId, onGoBack}) 
                                                     key={gameReport.id}
                                                     onClick={() => handleReportSelect(gameReport)}
                                                 >
-                                                    {gameReport.parsed_data.target_framerate} | {gameReport.parsed_data.device}
+                                                    {gameReport.data.target_framerate} | {gameReport.data.device}
                                                     <br/>
                                                     <small>
-                                                        "{gameReport.parsed_data.summary}"
+                                                        "{gameReport.data.summary}"
                                                     </small>
                                                 </ButtonItem>
                                             </PanelSectionRow>

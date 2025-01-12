@@ -1,9 +1,13 @@
 import React from 'react';
-import {PanelSection, PanelSectionRow, ButtonItem} from "@decky/ui";
+import {PanelSection, PanelSectionRow, Focusable, DialogButton, Navigation, Router} from "@decky/ui";
 import Markdown from 'markdown-to-jsx';
+import {Scrollable, scrollableRef, ScrollArea} from "./Scrollable";
+import {reportsWebsiteBaseUrl} from "../constants";
+import type {GameReport} from "../constants";
+import {MdArrowBack, MdWeb} from "react-icons/md";
 
 interface GameReportViewProps {
-    gameReport: any; // TODO: Replace 'any' with the actual type of gameReport if available
+    gameReport: GameReport;
     onGoBack: () => void;
 }
 
@@ -37,8 +41,8 @@ const GameReportView: React.FC<GameReportViewProps> = ({gameReport, onGoBack}) =
     };
     const systemConfigurationData = Object.entries(systemConfiguration)
         .map(([key, formattedKey]) => {
-            if (key in gameReport.parsed_data && gameReport.parsed_data[key] !== null) {
-                const value = gameReport.parsed_data[key];
+            if (gameReport.data && key in gameReport.data && gameReport.data[key] !== null) {
+                const value = gameReport.data[key];
                 return [formattedKey, String(value)];
             }
             return null;
@@ -47,6 +51,8 @@ const GameReportView: React.FC<GameReportViewProps> = ({gameReport, onGoBack}) =
 
     const performanceSettings = {
         "frame_limit": "Frame Limit",
+        "disable_frame_limit": "Disable Frame Limit",
+        "enable_vrr": "Enable VRR",
         "allow_tearing": "Allow Tearing",
         "half_rate_shading": "Half Rate Shading",
         "tdp_limit": "TDP Limit",
@@ -56,8 +62,8 @@ const GameReportView: React.FC<GameReportViewProps> = ({gameReport, onGoBack}) =
     };
     const performanceSettingsData = Object.entries(performanceSettings)
         .map(([key, formattedKey]) => {
-            if (key in gameReport.parsed_data && gameReport.parsed_data[key] !== null) {
-                const value = gameReport.parsed_data[key];
+            if (gameReport.data && key in gameReport.data && gameReport.data[key] !== null) {
+                const value = gameReport.data[key];
                 return [formattedKey, String(value)];
             }
             return null;
@@ -125,103 +131,140 @@ const GameReportView: React.FC<GameReportViewProps> = ({gameReport, onGoBack}) =
         }
     };
 
+    const ref = scrollableRef()
+
+    const openWeb = (url: string) => {
+        Navigation.NavigateToExternalWeb(url)
+        Router.CloseSideMenus()
+    }
+
     return (
         <div>
             <div>
                 <PanelSection>
-                    <ButtonItem layout="below" onClick={onGoBack}>
-                        Go Back
-                    </ButtonItem>
+                    <Focusable style={{display: 'flex', alignItems: 'center', gap: '1rem'}} flow-children="horizontal">
+                        <DialogButton
+                            // @ts-ignore
+                            autoFocus={true}
+                            style={{width: '50%', minWidth: 0}}
+                            onClick={onGoBack}>
+                            <MdArrowBack/>
+                        </DialogButton>
+                        <DialogButton
+                            style={{width: '50%', minWidth: 0}}
+                            onClick={() => {
+                                if (gameReport.data.app_id) {
+                                    openWeb(`${reportsWebsiteBaseUrl}/app/${gameReport.data.app_id}`);
+                                } else {
+                                    openWeb(`${reportsWebsiteBaseUrl}/game/${gameReport.data.game_name}`);
+                                }
+                            }}>
+                            <MdWeb/>
+                        </DialogButton>
+                    </Focusable>
                 </PanelSection>
                 <hr/>
             </div>
 
-            <div>
-                <PanelSection title="System Configuration">
-                    <PanelSectionRow>
+            <Scrollable ref={ref}>
+                <ScrollArea scrollable={ref}>
+
+                    <div>
+                        <PanelSection title="System Configuration">
+                            <PanelSectionRow>
+                                <div>
+                                    <ul style={markdownOptions.overrides.ul.props.style}>
+                                        {systemConfigurationData.map(([key, value]) => (
+                                            <li key={key}
+                                                style={{
+                                                    ...markdownOptions.overrides.li.props.style,
+                                                    textAlign: 'right'
+                                                }}>
+                                                <strong style={{
+                                                    ...markdownOptions.overrides.strong.props.style,
+                                                    textAlign: 'left'
+                                                }}>
+                                                    {key}
+                                                </strong>
+                                                {value}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </PanelSectionRow>
+                        </PanelSection>
+                        <hr/>
+                    </div>
+
+                    <div>
+                        <PanelSection title="Performance Settings">
+                            <PanelSectionRow>
+                                <div>
+                                    <ul style={markdownOptions.overrides.ul.props.style}>
+                                        {performanceSettingsData.map(([key, value]) => (
+                                            <li key={key}
+                                                style={{
+                                                    ...markdownOptions.overrides.li.props.style,
+                                                    textAlign: 'right'
+                                                }}>
+                                                <strong style={{
+                                                    ...markdownOptions.overrides.strong.props.style,
+                                                    textAlign: 'left'
+                                                }}>
+                                                    {key}
+                                                </strong>
+                                                {value}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </PanelSectionRow>
+                        </PanelSection>
+                        <hr/>
+                    </div>
+
+                    {gameReport.data.game_display_settings && (
                         <div>
-                            <ul style={markdownOptions.overrides.ul.props.style}>
-                                {systemConfigurationData.map(([key, value]) => (
-                                    <li key={key}
-                                        style={{
-                                            ...markdownOptions.overrides.li.props.style,
-                                            textAlign: 'right'
-                                        }}>
-                                        <strong style={{
-                                            ...markdownOptions.overrides.strong.props.style,
-                                            textAlign: 'left'
-                                        }}>
-                                            {key}
-                                        </strong>
-                                        {value}
-                                    </li>
-                                ))}
-                            </ul>
+                            <PanelSection title="Game Display Settings">
+                                <PanelSectionRow>
+                                    <Markdown options={markdownOptions}>
+                                        {gameReport.data.game_display_settings || ''}
+                                    </Markdown>
+                                </PanelSectionRow>
+                            </PanelSection>
+                            <hr/>
                         </div>
-                    </PanelSectionRow>
-                </PanelSection>
-                <hr/>
-            </div>
+                    )}
 
-            <div>
-                <PanelSection title="Performance Settings">
-                    <PanelSectionRow>
+                    {gameReport.data.game_graphics_settings && (
                         <div>
-                            <ul style={markdownOptions.overrides.ul.props.style}>
-                                {performanceSettingsData.map(([key, value]) => (
-                                    <li key={key}
-                                        style={{
-                                            ...markdownOptions.overrides.li.props.style,
-                                            textAlign: 'right'
-                                        }}>
-                                        <strong style={{
-                                            ...markdownOptions.overrides.strong.props.style,
-                                            textAlign: 'left'
-                                        }}>
-                                            {key}
-                                        </strong>
-                                        {value}
-                                    </li>
-                                ))}
-                            </ul>
+                            <PanelSection title="Game Graphics Settings">
+                                <PanelSectionRow>
+                                    <Markdown options={markdownOptions}>
+                                        {gameReport.data.game_graphics_settings || ''}
+                                    </Markdown>
+                                </PanelSectionRow>
+                            </PanelSection>
+                            <hr/>
                         </div>
-                    </PanelSectionRow>
-                </PanelSection>
-                <hr/>
-            </div>
+                    )}
 
-            <div>
-                <PanelSection title="Game Display Settings">
-                    <PanelSectionRow>
-                        <Markdown options={markdownOptions}>
-                            {gameReport.parsed_data.game_display_settings || ''}
-                        </Markdown>
-                    </PanelSectionRow>
-                </PanelSection>
-                <hr/>
-            </div>
+                    {gameReport.data.additional_notes && (
+                        <div>
+                            <PanelSection title="Additional Notes">
+                                <PanelSectionRow>
+                                    <Markdown options={markdownOptions}>
+                                        {gameReport.data.additional_notes || ''}
+                                    </Markdown>
+                                </PanelSectionRow>
+                            </PanelSection>
+                            <hr/>
+                        </div>
+                    )}
 
-            <div>
-                <PanelSection title="Game Graphics Settings">
-                    <PanelSectionRow>
-                        <Markdown options={markdownOptions}>
-                            {gameReport.parsed_data.game_graphics_settings || ''}
-                        </Markdown>
-                    </PanelSectionRow>
-                </PanelSection>
-                <hr/>
-            </div>
+                </ScrollArea>
+            </Scrollable>
 
-            <div>
-                <PanelSection title="Additional Notes">
-                    <PanelSectionRow>
-                        <Markdown options={markdownOptions}>
-                            {gameReport.parsed_data.additional_notes || ''}
-                        </Markdown>
-                    </PanelSectionRow>
-                </PanelSection>
-                <hr/>
-            </div>
         </div>
     );
 };

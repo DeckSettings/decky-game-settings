@@ -1,4 +1,5 @@
 import { Router } from "decky-frontend-lib";
+import {appsToIgnore, ignoreSteam} from "../constants";
 
 // Define the GameInfo interface
 export interface GameInfo {
@@ -6,21 +7,6 @@ export interface GameInfo {
     appId: number;
     sortAs?: string;
 }
-
-// Lists of apps to ignore
-export const ignoreSteam = [
-    2180100, // Proton Hotfix
-    1493710, // Proton Experimental
-    1070560, // Steam Linux Runtime
-    1070560, // "Steam Linux Runtime 1.0 (scout)"
-    1391110, // "Steam Linux Runtime 2.0 (soldier)"
-    1628350, // "Steam Linux Runtime 3.0 (sniper)"
-    228980, // "Steamworks Common Redistributables"
-]
-const appsToIgnore = [
-    /^Proton\s\d+\.\d+$/,
-    /^Steam Linux Runtime \d+\.\d+\s\(.*\)$/
-];
 
 export const getInstalledGames = async () => {
     const installFolders = await SteamClient.InstallFolder.GetInstallFolders();
