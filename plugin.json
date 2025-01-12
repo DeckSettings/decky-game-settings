@@ -6,6 +6,6 @@
   "publish": {
     "tags": ["template", "root"],
     "description": "Decky game settings plugin.",
-    "image": "https://opengraph.githubassets.com/1/DeckSettings/decky-game-settings"
+    "image": "https://raw.githubusercontent.com/DeckSettings/decky-game-settings/55a0dda61caeffa6cf7215c9bb2afcaa66fb25ec/assets/screenshot.jpg"
   }
 }
