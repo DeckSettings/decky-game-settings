@@ -3,12 +3,9 @@ import {
 } from "@decky/ui";
 import {
     definePlugin,
-    // routerHook
 } from "@decky/api"
 import {MdTune} from "react-icons/md";
 import QuickAccessView from "./components/QuickAccessView";
-
-// import logo from "../assets/logo.png";
 
 export default definePlugin(() => {
     console.log("Plugin initializing, this is called once on frontend startup")
