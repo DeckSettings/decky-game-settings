@@ -1,10 +1,10 @@
 import React, {useEffect, useState} from 'react';
 import {ButtonItem, DialogButton, Focusable, Navigation, PanelSection, PanelSectionRow, Router} from "@decky/ui";
-import {fetchNoCors} from "@decky/api";
 import GameReportView from "./GameReportView";
-import {reportsApiBaseUrl, reportsWebsiteBaseUrl} from "../constants";
+import {reportsWebsiteBaseUrl} from "../constants";
 import type {GameDataViewProps, GameDetails} from "../constants";
 import {MdArrowBack, MdWeb} from "react-icons/md";
+import {fetchGameDataByAppId, fetchGameDataByGameName} from "../hooks/deckVerifiedApi";
 
 const GameDataView: React.FC<GameDataViewProps> = ({gameName, appId, onGoBack}) => {
     const [isLoading, setIsLoading] = useState(false);
@@ -12,23 +12,19 @@ const GameDataView: React.FC<GameDataViewProps> = ({gameName, appId, onGoBack}) 
 
     useEffect(() => {
         const fetchData = async () => {
-            if (appId) {
-                setIsLoading(true);
-                try {
-                    const url = `${reportsApiBaseUrl}/game_details?appid=${appId}&include_external=false`;
-                    console.log(url)
-                    const res = await fetchNoCors(url, {
-                        method: 'GET'
-                    });
-                    const data = await res.json();
+            setIsLoading(true);
+            try {
+                if (appId) {
+                    const data = await fetchGameDataByAppId(appId)
                     setGameDetails(data);
-                    console.log(data)
-                    console.log(gameDetails)
-                } catch (error) {
-                    console.error("Error fetching game details:", error);
-                } finally {
-                    setIsLoading(false);
+                } else {
+                    const data = await fetchGameDataByGameName(gameName)
+                    setGameDetails(data);
                 }
+            } catch (error) {
+                console.error("[GameDataView] Error fetching game details:", error);
+            } finally {
+                setIsLoading(false);
             }
         };
 
@@ -37,7 +33,7 @@ const GameDataView: React.FC<GameDataViewProps> = ({gameName, appId, onGoBack}) 
 
     const [selectedReport, setSelectedReport] = useState<any>(null);
     const handleReportSelect = (gameReport) => {
-        console.log(`Selected game report ${gameReport.title}`);
+        console.log(`[GameDataView] Selected game report ${gameReport.title}`);
         setSelectedReport(gameReport);
     };
 
@@ -60,12 +56,12 @@ const GameDataView: React.FC<GameDataViewProps> = ({gameName, appId, onGoBack}) 
                             <Focusable style={{display: 'flex', alignItems: 'center', gap: '1rem'}}
                                        flow-children="horizontal">
                                 <DialogButton
-                                    style={{width: '50%', minWidth: 0}}
+                                    style={{width: '30%', minWidth: 0}}
                                     onClick={onGoBack}>
                                     <MdArrowBack/>
                                 </DialogButton>
                                 <DialogButton
-                                    style={{width: '50%', minWidth: 0}}
+                                    style={{width: '70%', minWidth: 0}}
                                     onClick={() => {
                                         if (appId) {
                                             openWeb(`${reportsWebsiteBaseUrl}/app/${appId}`);

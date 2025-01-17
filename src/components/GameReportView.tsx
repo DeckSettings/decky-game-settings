@@ -1,7 +1,7 @@
 import React from 'react';
 import {PanelSection, PanelSectionRow, Focusable, DialogButton, Navigation, Router} from "@decky/ui";
 import Markdown from 'markdown-to-jsx';
-import {Scrollable, scrollableRef, ScrollArea} from "./Scrollable";
+import {Scrollable, scrollableRef, ScrollArea} from "./elements/ScrollableList";
 import {reportsWebsiteBaseUrl} from "../constants";
 import type {GameReport} from "../constants";
 import {MdArrowBack, MdWeb} from "react-icons/md";

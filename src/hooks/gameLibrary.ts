@@ -1,19 +1,12 @@
-import { Router } from "decky-frontend-lib";
+import {Router} from "decky-frontend-lib";
 import {appsToIgnore, ignoreSteam} from "../constants";
-
-// Define the GameInfo interface
-export interface GameInfo {
-    title: string;
-    appId: number;
-    sortAs?: string;
-}
+import type {GameInfo} from "../interfaces";
 
 export const getInstalledGames = async () => {
     const installFolders = await SteamClient.InstallFolder.GetInstallFolders();
     const games: Required<GameInfo>[] = [];
     const currentRunningGame = Router.MainRunningApp;
     let runningGame: GameInfo | null = null;
-    console.log(currentRunningGame)
 
     installFolders.forEach((folder) => {
         folder.vecApps.forEach((app) => {
@@ -37,5 +30,5 @@ export const getInstalledGames = async () => {
     });
 
     games.sort((a, b) => (a.sortAs ? (a.sortAs > b.sortAs ? 1 : -1) : 0));
-    return { games, runningGame };
+    return {games, runningGame};
 };

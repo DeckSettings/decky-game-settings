@@ -18,6 +18,8 @@ export default definePlugin(() => {
         name: "DeckyGameSettings",
         // The element displayed at the top of your plugin's menu
         titleView: <div className={staticClasses.Title}>Deck Settings</div>,
+        // Preserve the plugin's state while the QAM is closed
+        alwaysRender: true,
         // The content of your plugin's menu
         content: <QuickAccessView/>,
         // The icon displayed in the plugin list

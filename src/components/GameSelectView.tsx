@@ -2,51 +2,66 @@ import {
     ButtonItem,
     DialogButton,
     PanelSection,
-    PanelSectionRow
+    PanelSectionRow,
+    TextField,
+    showModal,
 } from "@decky/ui";
 //import useLocalizationTs from '../../hooks/useLocalizationTs';
 import {useState, useEffect} from 'react';
 import {getInstalledGames} from "../hooks/gameLibrary"
-import type {GameInfo} from "../hooks/gameLibrary"
+import type {GameInfo} from "../interfaces";
+import {TextFieldModal} from "./elements/TextFieldModal";
 
 
-const GameSelectView: React.FC<{ onGameSelect: (game: GameInfo) => void }> = ({onGameSelect}) => {
+interface GameSelectViewProps {
+    onGameSelect: (game: GameInfo) => void;
+    onSearch: (searchText: string) => void;
+}
+
+const GameSelectView: React.FC<GameSelectViewProps> = ({onGameSelect, onSearch}) => {
+
     const [currentlyRunningGame, setCurrentlyRunningGame] = useState<GameInfo | null>(null);
     const [installedGames, setInstalledGames] = useState<GameInfo[]>([]);
-    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
-        // Fetch installed games using getInstalledGames
-        const fetchInstalledGames = async () => {
-            try {
-                const {games, runningGame} = await getInstalledGames();
-                setInstalledGames(games);
-                setCurrentlyRunningGame(runningGame);
-                // TODO: Remove logging
-                console.log(games)
-                console.log(runningGame)
-                // TODO: Add support for setSearchTerm
-                setSearchTerm('')
-            } catch (error) {
-                console.error("Error fetching installed games:", error);
-            }
-        };
-
         // noinspection JSIgnoredPromiseFromCall
         fetchInstalledGames();
     }, []);
 
-    const filteredGames = installedGames.filter((game) =>
-        game.title.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Fetch installed games using getInstalledGames
+    const fetchInstalledGames = async () => {
+        try {
+            const {games, runningGame} = await getInstalledGames();
+            setInstalledGames(games);
+            setCurrentlyRunningGame(runningGame);
+        } catch (error) {
+            console.error("[GameSelectView] Error fetching installed games:", error);
+        }
+    };
 
     const handleGameSelect = (game: GameInfo) => {
-        console.log(`Selected game [AppID:${game.appId}, Title:${game.title}]`);
+        console.log(`[GameSelectView] Selected game [AppID:${game.appId}, Title:${game.title}]`);
         onGameSelect(game);
     };
 
     return (
         <div>
+            <PanelSection title="Search for games">
+                <PanelSectionRow>
+                    <TextField
+                        label="Search"
+                        onClick={() => showModal(
+                            <TextFieldModal
+                                label="Search"
+                                placeholder="Game name or appid"
+                                onClosed={onSearch}
+                            />
+                        )}
+                    />
+                </PanelSectionRow>
+            </PanelSection>
+            <hr/>
+
             {currentlyRunningGame ? (
                 <PanelSection title="Current Game">
                     <PanelSectionRow key={`${currentlyRunningGame.appId}${currentlyRunningGame.title}`}>
@@ -62,7 +77,7 @@ const GameSelectView: React.FC<{ onGameSelect: (game: GameInfo) => void }> = ({o
             {currentlyRunningGame ? (<hr/>) : null}
 
             <PanelSection title="Installed Games">
-                {filteredGames.map((game) => (
+                {installedGames.map((game) => (
                     <PanelSectionRow key={`${game.appId}${game.title}`}>
                         <ButtonItem
                             layout="below"
