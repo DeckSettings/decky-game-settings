@@ -1,11 +1,18 @@
 {
   "name": "Deck Settings",
   "author": "Josh.5",
-  "flags": ["debug", "_root"],
+  "flags": [],
   "api_version": 1,
   "publish": {
-    "tags": ["template", "root"],
-    "description": "Decky game settings plugin.",
+    "tags": [
+      "config",
+      "settings",
+      "setup",
+      "game",
+      "verified",
+      "deckverified"
+    ],
+    "description": "Fetch and display community-driven game compatibility, settings, and configuration reports.",
     "image": "https://raw.githubusercontent.com/DeckSettings/decky-game-settings/55a0dda61caeffa6cf7215c9bb2afcaa66fb25ec/assets/screenshot.jpg"
   }
 }

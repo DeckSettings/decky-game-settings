@@ -1,7 +1,7 @@
 {
   "name": "decky-game-settings",
   "version": "0.0.1",
-  "description": "A template to quickly create decky plugins from scratch, based on TypeScript and webpack",
+  "description": "A plugin for Decky Loader that fetches and displays community-driven game compatibility and configuration reports directly from the Deck Settings API.",
   "type": "module",
   "scripts": {
     "build": "rollup -c",
