@@ -1,20 +1,14 @@
 import React, {useEffect, useState} from 'react';
 import GameSelectView from "./GameSelectView";
-import GameDataView from "./GameDetailsView";
+import GameDetailsView from "./GameDetailsView";
 import SearchResultsView from "./SearchResultsView";
-import type {GameInfo} from "../interfaces";
-
-type Page = "game_select" | "search_results" | "game_data";
+import type {GameInfo, PluginPage} from "../interfaces";
+import PluginConfigView from "./PluginConfigView";
 
 
 const QuickAccessView: React.FC = () => {
-
-    //const setShowSettings = () => {
-    //    console.log(`[QuickAccessView] Show Plugin Settings`);
-    //};
-
-    const [currentPage, setCurrentPage] = useState<Page>("game_select");
-    const changePage = (page: Page) => {
+    const [currentPage, setCurrentPage] = useState<PluginPage>("game_select");
+    const changePage = (page: PluginPage) => {
         console.log(`[QuickAccessView] Changing page to: ${page}`);
         setCurrentPage(page);
     };
@@ -39,10 +33,16 @@ const QuickAccessView: React.FC = () => {
 
     return (
         <div>
+            {currentPage === "plugin_config" && (
+                <PluginConfigView
+                    onGoBack={() => changePage("game_select")}
+                />
+            )}
             {currentPage === "game_select" && (
                 <GameSelectView
                     onGameSelect={handleGameSelect}
                     onSearch={handleSearch}
+                    onChangePage={changePage}
                 />
             )}
             {currentPage === "search_results" && (
@@ -54,7 +54,7 @@ const QuickAccessView: React.FC = () => {
                 />
             )}
             {currentPage === "game_data" && selectedGame && (
-                <GameDataView
+                <GameDetailsView
                     gameName={selectedGame.title}
                     appId={selectedGame.appId}
                     onGoBack={() => changePage("game_select")}

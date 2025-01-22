@@ -4,36 +4,37 @@ import {
     PanelSection,
     PanelSectionRow,
     TextField,
-    showModal,
+    showModal, Focusable,
 } from "@decky/ui";
-//import useLocalizationTs from '../../hooks/useLocalizationTs';
 import {useState, useEffect} from 'react';
-import {getInstalledGames} from "../hooks/gameLibrary"
-import type {GameInfo} from "../interfaces";
+import {getGamesList} from "../hooks/gameLibrary"
+import type {GameInfo, PluginPage} from "../interfaces";
 import {TextFieldModal} from "./elements/TextFieldModal";
+import {MdSettings} from "react-icons/md";
+import {getPluginConfig} from "../constants";
 
 
 interface GameSelectViewProps {
     onGameSelect: (game: GameInfo) => void;
     onSearch: (searchText: string) => void;
+    onChangePage: (page: PluginPage) => void;
 }
 
-const GameSelectView: React.FC<GameSelectViewProps> = ({onGameSelect, onSearch}) => {
-
+const GameSelectView: React.FC<GameSelectViewProps> = ({onGameSelect, onSearch, onChangePage}) => {
     const [currentlyRunningGame, setCurrentlyRunningGame] = useState<GameInfo | null>(null);
     const [installedGames, setInstalledGames] = useState<GameInfo[]>([]);
-
-    useEffect(() => {
-        // noinspection JSIgnoredPromiseFromCall
-        fetchInstalledGames();
-    }, []);
+    const [nonInstalledGames, setNonInstalledGames] = useState<GameInfo[]>([]);
 
     // Fetch installed games using getInstalledGames
     const fetchInstalledGames = async () => {
         try {
-            const {games, runningGame} = await getInstalledGames();
-            setInstalledGames(games);
+            const {runningGame, installedGames, nonInstalledGames} = await getGamesList();
             setCurrentlyRunningGame(runningGame);
+            setInstalledGames(installedGames);
+            const currentConfig = getPluginConfig();
+            if (currentConfig.showAllApps) {
+                setNonInstalledGames(nonInstalledGames);
+            }
         } catch (error) {
             console.error("[GameSelectView] Error fetching installed games:", error);
         }
@@ -44,23 +45,39 @@ const GameSelectView: React.FC<GameSelectViewProps> = ({onGameSelect, onSearch})
         onGameSelect(game);
     };
 
+    useEffect(() => {
+        console.log(`[GameSelectView] Mounted`);
+        // noinspection JSIgnoredPromiseFromCall
+        fetchInstalledGames();
+    }, []);
+
     return (
         <div>
-            <PanelSection title="Search for games">
-                <PanelSectionRow>
-                    <TextField
-                        label="Search"
-                        onClick={() => showModal(
-                            <TextFieldModal
+            <div>
+                <PanelSection>
+                    <Focusable style={{display: 'flex', alignItems: 'center', gap: '1rem'}}
+                               flow-children="horizontal">
+                        <DialogButton
+                            style={{width: '30%', minWidth: 0}}
+                            onClick={() => onChangePage("plugin_config")}>
+                            <MdSettings/>
+                        </DialogButton>
+                        <div style={{width: '70%', minWidth: 0}}>
+                            <TextField
                                 label="Search"
-                                placeholder="Game name or appid"
-                                onClosed={onSearch}
+                                onClick={() => showModal(
+                                    <TextFieldModal
+                                        label="Search"
+                                        placeholder="Game name or appid"
+                                        onClosed={onSearch}
+                                    />
+                                )}
                             />
-                        )}
-                    />
-                </PanelSectionRow>
-            </PanelSection>
-            <hr/>
+                        </div>
+                    </Focusable>
+                </PanelSection>
+                <hr/>
+            </div>
 
             {currentlyRunningGame ? (
                 <PanelSection title="Current Game">
@@ -89,6 +106,24 @@ const GameSelectView: React.FC<GameSelectViewProps> = ({onGameSelect, onSearch})
                     </PanelSectionRow>
                 ))}
             </PanelSection>
+
+            {nonInstalledGames && nonInstalledGames.length > 0 ? (
+                <PanelSection title="All Other Games">
+                    {nonInstalledGames.map((game) => (
+                        <PanelSectionRow key={`${game.appId}${game.title}`}>
+                            <ButtonItem
+                                layout="below"
+                                key={game.appId}
+                                onClick={() => handleGameSelect(game)}
+                            >
+                                {game.title}
+                            </ButtonItem>
+                        </PanelSectionRow>
+                    ))}
+                </PanelSection>
+            ) : null}
+            {currentlyRunningGame ? (<hr/>) : null}
+
         </div>
     );
 };

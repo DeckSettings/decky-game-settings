@@ -2,38 +2,60 @@ import React, {useEffect, useState} from 'react';
 import {ButtonItem, DialogButton, Focusable, Navigation, PanelSection, PanelSectionRow, Router} from "@decky/ui";
 import GameReportView from "./GameReportView";
 import {reportsWebsiteBaseUrl} from "../constants";
-import type {GameDataViewProps, GameDetails} from "../constants";
+import type {GameDetails, GameReport} from "../interfaces";
 import {MdArrowBack, MdWeb} from "react-icons/md";
 import {fetchGameDataByAppId, fetchGameDataByGameName} from "../hooks/deckVerifiedApi";
+import {getPluginConfig} from "../constants";
 
-const GameDataView: React.FC<GameDataViewProps> = ({gameName, appId, onGoBack}) => {
+export interface GameDetailsViewProps {
+    gameName: string;
+    appId?: number;
+    onGoBack: () => void;
+}
+
+const GameDetailsView: React.FC<GameDetailsViewProps> = ({gameName, appId, onGoBack}) => {
     const [isLoading, setIsLoading] = useState(false);
     const [gameDetails, setGameDetails] = useState<GameDetails | null>(null);
+    const [configFilterDevices, setConfigFilterDevices] = useState<boolean>(false);
+    const [filteredReports, setFilteredReports] = useState<GameReport[]>([]);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            setIsLoading(true);
-            try {
-                if (appId) {
-                    const data = await fetchGameDataByAppId(appId)
-                    setGameDetails(data);
+    const fetchData = async () => {
+        setIsLoading(true);
+        try {
+            const data = appId
+                ? await fetchGameDataByAppId(appId)
+                : await fetchGameDataByGameName(gameName);
+
+            setGameDetails(data);
+
+            // Filter the reports based on the filterDevices configuration
+            if (data?.reports && Array.isArray(data.reports)) {
+                const pluginConfig = getPluginConfig();
+                if (pluginConfig.filterDevices.length === 0) {
+                    setConfigFilterDevices(false)
+                    setFilteredReports(data.reports);
                 } else {
-                    const data = await fetchGameDataByGameName(gameName)
-                    setGameDetails(data);
+                    setConfigFilterDevices(true)
+                    const filtered = data.reports.filter((report) =>
+                        report.labels.some(label =>
+                            pluginConfig.filterDevices.includes(label.description)
+                        )
+                    );
+                    setFilteredReports(filtered);
                 }
-            } catch (error) {
-                console.error("[GameDataView] Error fetching game details:", error);
-            } finally {
-                setIsLoading(false);
+            } else {
+                setFilteredReports([]);
             }
-        };
+        } catch (error) {
+            console.error("[GameDetailsView] Error fetching game details:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-        fetchData();
-    }, [appId]);
-
-    const [selectedReport, setSelectedReport] = useState<any>(null);
-    const handleReportSelect = (gameReport) => {
-        console.log(`[GameDataView] Selected game report ${gameReport.title}`);
+    const [selectedReport, setSelectedReport] = useState<GameReport | null>(null);
+    const handleReportSelect = (gameReport: GameReport) => {
+        console.log(`[GameDetailsView] Selected game report ${gameReport.title}`);
         setSelectedReport(gameReport);
     };
 
@@ -41,6 +63,11 @@ const GameDataView: React.FC<GameDataViewProps> = ({gameName, appId, onGoBack}) 
         Navigation.NavigateToExternalWeb(url)
         Router.CloseSideMenus()
     }
+
+    useEffect(() => {
+        console.log(`[GameDetailsView] Mounted with [appId: ${appId}, gameName: ${gameName}]`);
+        fetchData();
+    }, [appId, gameName]);
 
     return (
         <div>
@@ -84,11 +111,11 @@ const GameDataView: React.FC<GameDataViewProps> = ({gameName, appId, onGoBack}) 
                                 <div>
                                     {appId && <span>App ID: {appId}</span>}
                                     {appId && gameDetails && <span> | </span>}
-                                    {gameDetails && <span>Reports: {gameDetails.reports.length}</span>}
+                                    {gameDetails && <span>Reports: {filteredReports.length}</span>}
                                 </div>
-                                {gameDetails && gameDetails.reports.length > 0 && (
+                                {filteredReports.length > 0 && (
                                     <div>
-                                        {gameDetails.reports.map((gameReport) => (
+                                        {filteredReports.map((gameReport) => (
                                             <PanelSectionRow key={`${gameReport.id}`}>
                                                 <ButtonItem
                                                     layout="below"
@@ -108,6 +135,12 @@ const GameDataView: React.FC<GameDataViewProps> = ({gameName, appId, onGoBack}) 
                                         </p>
                                     </div>
                                 )}
+                                {configFilterDevices && filteredReports.length === 0 && (
+                                    <p>No reports match the selected device filters.</p>
+                                )}
+                                {!configFilterDevices && filteredReports.length === 0 && (
+                                    <p>No reports found.</p>
+                                )}
                             </div>
                         )}
                     </PanelSection>
@@ -117,4 +150,4 @@ const GameDataView: React.FC<GameDataViewProps> = ({gameName, appId, onGoBack}) 
     );
 };
 
-export default GameDataView;
+export default GameDetailsView;

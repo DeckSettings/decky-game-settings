@@ -18,19 +18,9 @@ interface SearchResultsViewProps {
     onGoBack: () => void;
 }
 
-const SearchResultsView: React.FC<SearchResultsViewProps> = ({
-                                                                 query,
-                                                                 onGameSelect,
-                                                                 onSearch,
-                                                                 onGoBack,
-                                                             }) => {
+const SearchResultsView: React.FC<SearchResultsViewProps> = ({query, onGameSelect, onSearch, onGoBack,}) => {
     const [searchResults, setSearchResults] = useState<GameInfo[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        console.log(`[SearchResultsView] Mounted with query: ${query}`);
-        fetchSearchResults(query);
-    }, [query]);
 
     const fetchSearchResults = async (term: string) => {
         setIsLoading(true);
@@ -44,6 +34,11 @@ const SearchResultsView: React.FC<SearchResultsViewProps> = ({
             setIsLoading(false);
         }
     };
+
+    useEffect(() => {
+        console.log(`[SearchResultsView] Mounted with query: ${query}`);
+        fetchSearchResults(query);
+    }, [query]);
 
     return (
         <div>

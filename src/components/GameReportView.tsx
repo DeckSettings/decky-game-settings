@@ -3,7 +3,7 @@ import {PanelSection, PanelSectionRow, Focusable, DialogButton, Navigation, Rout
 import Markdown from 'markdown-to-jsx';
 import {Scrollable, scrollableRef, ScrollArea} from "./elements/ScrollableList";
 import {reportsWebsiteBaseUrl} from "../constants";
-import type {GameReport} from "../constants";
+import type {GameReport} from "../interfaces";
 import {MdArrowBack, MdWeb} from "react-icons/md";
 
 interface GameReportViewProps {
