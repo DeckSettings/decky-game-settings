@@ -29,11 +29,9 @@ export const getPluginConfig = (): PluginConfig => {
         showAllApps: false,
     };
     const dataJson = window.localStorage.getItem("decky-game-settings");
-    console.log(dataJson)
     if (dataJson) {
         try {
             const parsedConfig = JSON.parse(dataJson);
-            console.log(parsedConfig)
             return {
                 ...defaultConfig,
                 ...parsedConfig,

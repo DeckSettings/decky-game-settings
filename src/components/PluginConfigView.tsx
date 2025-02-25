@@ -11,6 +11,8 @@ import {MdArrowBack} from "react-icons/md";
 import type {Devices, PluginConfig} from "../interfaces";
 import {getPluginConfig, setPluginConfig} from "../constants";
 import {fetchDeviceList} from "../hooks/deckVerifiedApi";
+import {PanelSocialButton} from "./elements/socialButton";
+import {SiDiscord, SiGithub, SiKofi, SiPatreon} from "react-icons/si";
 
 interface PluginConfigViewProps {
     onGoBack: () => void;
@@ -123,6 +125,22 @@ const PluginConfigView: React.FC<PluginConfigViewProps> = ({onGoBack,}) => {
                                 onChange={(value) => updateConfig({showAllApps: !value})}
                             />
                         </PanelSectionRow>
+                    </PanelSection>
+                    <hr/>
+                    <PanelSection>
+                        <PanelSocialButton icon={<SiPatreon fill="#438AB9"/>} url="https://www.patreon.com/c/Josh5">
+                            Patreon
+                        </PanelSocialButton>
+                        <PanelSocialButton icon={<SiKofi fill="#FF5E5B"/>} url="https://ko-fi.com/josh5coffee">
+                            Ko-fi
+                        </PanelSocialButton>
+                        <PanelSocialButton icon={<SiDiscord fill="#5865F2"/>} url="https://streamingtech.co.nz/discord">
+                            Discord
+                        </PanelSocialButton>
+                        <PanelSocialButton icon={<SiGithub fill="#f5f5f5"/>}
+                                           url="https://github.com/DeckSettings/decky-game-settings">
+                            Plugin Source
+                        </PanelSocialButton>
                     </PanelSection>
                 </div>
             )}
