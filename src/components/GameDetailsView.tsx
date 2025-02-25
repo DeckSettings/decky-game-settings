@@ -138,35 +138,24 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({gameName, appId, onGoB
                                     </div>
                                 )}
                                 {configFilterDevices && filteredReports.length === 0 && (
-                                    <>
-                                        <p>No reports match the selected device filters.</p>
-                                        <PanelSocialButton
-                                            icon={<TbReport fill="#FF5E5B"/>}
-                                            url={
-                                                appId
-                                                    ? `${reportsWebsiteBaseUrl}/app/${appId}?openReportForm=true`
-                                                    : `${reportsWebsiteBaseUrl}/game/${gameName}?openReportForm=true`
-                                            }
-                                        >
-                                            Add your own report
-                                        </PanelSocialButton>
-                                    </>
+                                    <p>No reports match the selected device filters.</p>
                                 )}
                                 {!configFilterDevices && filteredReports.length === 0 && (
-                                    <>
-                                        <p>No reports found.</p>
-                                        <PanelSocialButton
-                                            icon={<TbReport fill="#FF5E5B"/>}
-                                            url={
-                                                appId
-                                                    ? `${reportsWebsiteBaseUrl}/app/${appId}?openReportForm=true`
-                                                    : `${reportsWebsiteBaseUrl}/game/${gameName}?openReportForm=true`
-                                            }
-                                        >
-                                            Add your own report
-                                        </PanelSocialButton>
-                                    </>
+                                    <p>No reports found.</p>
                                 )}
+                                <hr/>
+                                <PanelSection>
+                                    <PanelSocialButton
+                                        icon={<TbReport fill="#FF5E5B"/>}
+                                        url={
+                                            appId
+                                                ? `${reportsWebsiteBaseUrl}/app/${appId}?openReportForm=true`
+                                                : `${reportsWebsiteBaseUrl}/game/${gameName}?openReportForm=true`
+                                        }
+                                    >
+                                        Add your own report
+                                    </PanelSocialButton>
+                                </PanelSection>
                             </div>
                         )}
                     </PanelSection>
