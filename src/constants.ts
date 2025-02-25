@@ -2,7 +2,7 @@
 import type {PluginConfig} from "./interfaces";
 
 export const reportsApiBaseUrl = "https://deckverified.games/deck-verified/api/v1";
-export const reportsWebsiteBaseUrl = "https://deckverified.games/deck-verified/#";
+export const reportsWebsiteBaseUrl = "https://deckverified.games/deck-verified";
 
 // List of apps to always filter out
 export const ignoreListAppRegex = [
