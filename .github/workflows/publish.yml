@@ -1,0 +1,109 @@
+name: Build & Publish
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["feature-**", "fix-**", staging, master]
+    tags: ["**"]
+
+jobs:
+  build-and-publish-plugin:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      # Checkout files
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.18"
+
+      # Prepare build environment
+      - name: Prepare build environment
+        shell: bash
+        id: prepare
+        run: |
+          plugin_version=$(node -p "require('./package.json').version")
+          echo "plugin_name=decky-game-settings" >> $GITHUB_OUTPUT
+          echo "plugin_version=${plugin_version:?}" >> $GITHUB_OUTPUT
+
+      # Install dependencies
+      - name: Install pnpm
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl tar wget zip
+          npm install -g pnpm
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      # Build plugin
+      - name: build
+        run: pnpm run build
+
+      - name: Create output directory
+        run: |
+          rm -rfv ./out
+          mkdir -p ./out/${{ steps.prepare.outputs.plugin_name }}
+          cp -fv ./plugin.json ./out/${{ steps.prepare.outputs.plugin_name }}/
+          cp -fv ./package.json ./out/${{ steps.prepare.outputs.plugin_name }}/
+          cp -fv ./LICENSE ./out/${{ steps.prepare.outputs.plugin_name }}/
+          cp -fv ./README.md ./out/${{ steps.prepare.outputs.plugin_name }}/
+          cp -rfv ./dist ./out/${{ steps.prepare.outputs.plugin_name }}/dist
+
+      - name: zip/tar release
+        run: |
+          cd out
+          zip -r ${{ steps.prepare.outputs.plugin_name }}.zip ${{ steps.prepare.outputs.plugin_name }}/*
+          tar -czvf ${{ steps.prepare.outputs.plugin_name }}.tar.gz ${{ steps.prepare.outputs.plugin_name }}
+
+      # Upload artifacts
+      - name: Upload Artifacts to Github
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.prepare.outputs.plugin_name }}
+          path: |
+            ./out/${{ steps.prepare.outputs.plugin_name }}/*
+
+      # Generate tagged release (should not be updated)
+      - name: Check Tag Already Exists
+        uses: mukunku/tag-exists-action@bdad1eaa119ce71b150b952c97351c75025c06a9 #v1.6.0
+        id: check_tag_exists
+        with:
+          tag: ${{ steps.prepare.outputs.plugin_version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate Tagged Release
+        uses: ncipollo/release-action@440c8c1cb0ed28b9f43e4d1d670870f059653174 #v1.16.0
+        if: steps.check_tag_exists.outputs.exists == 'false'
+        with:
+          name: "Tagged Build: ${{ steps.prepare.outputs.plugin_version }}"
+          body: "Versioned release"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          artifacts: "./out/${{ steps.prepare.outputs.plugin_name }}.zip,./out/${{ steps.prepare.outputs.plugin_name }}.tar.gz"
+          generateReleaseNotes: true
+          allowUpdates: false
+          skipIfReleaseExists: true
+          tag: ${{ steps.prepare.outputs.plugin_version }}
+          commit: master
+
+      # Generate latest development
+      - name: Update Latest Release
+        uses: ncipollo/release-action@440c8c1cb0ed28b9f43e4d1d670870f059653174 #v1.16.0
+        with:
+          name: "Development Build"
+          body: "Latest development release"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          artifacts: "./out/${{ steps.prepare.outputs.plugin_name }}.zip,./out/${{ steps.prepare.outputs.plugin_name }}.tar.gz"
+          generateReleaseNotes: true
+          allowUpdates: true
+          removeArtifacts: true
+          replacesArtifacts: true
+          tag: latest
+          commit: master
+          prerelease: true
