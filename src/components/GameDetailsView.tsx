@@ -6,6 +6,8 @@ import type {GameDetails, GameReport} from "../interfaces";
 import {MdArrowBack, MdWeb} from "react-icons/md";
 import {fetchGameDataByAppId, fetchGameDataByGameName} from "../hooks/deckVerifiedApi";
 import {getPluginConfig} from "../constants";
+import {PanelSocialButton} from "./elements/socialButton";
+import {TbReport} from "react-icons/tb";
 
 export interface GameDetailsViewProps {
     gameName: string;
@@ -136,10 +138,34 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({gameName, appId, onGoB
                                     </div>
                                 )}
                                 {configFilterDevices && filteredReports.length === 0 && (
-                                    <p>No reports match the selected device filters.</p>
+                                    <>
+                                        <p>No reports match the selected device filters.</p>
+                                        <PanelSocialButton
+                                            icon={<TbReport fill="#FF5E5B"/>}
+                                            url={
+                                                appId
+                                                    ? `${reportsWebsiteBaseUrl}/app/${appId}?openReportForm=true`
+                                                    : `${reportsWebsiteBaseUrl}/game/${gameName}?openReportForm=true`
+                                            }
+                                        >
+                                            Add your own report
+                                        </PanelSocialButton>
+                                    </>
                                 )}
                                 {!configFilterDevices && filteredReports.length === 0 && (
-                                    <p>No reports found.</p>
+                                    <>
+                                        <p>No reports found.</p>
+                                        <PanelSocialButton
+                                            icon={<TbReport fill="#FF5E5B"/>}
+                                            url={
+                                                appId
+                                                    ? `${reportsWebsiteBaseUrl}/app/${appId}?openReportForm=true`
+                                                    : `${reportsWebsiteBaseUrl}/game/${gameName}?openReportForm=true`
+                                            }
+                                        >
+                                            Add your own report
+                                        </PanelSocialButton>
+                                    </>
                                 )}
                             </div>
                         )}
