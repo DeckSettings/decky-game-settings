@@ -8,10 +8,10 @@ import {
 } from "@decky/ui";
 import {useState, useEffect} from "react";
 import {MdArrowBack} from "react-icons/md";
-import type {Devices, PluginConfig} from "../interfaces";
-import {getPluginConfig, setPluginConfig} from "../constants";
-import {fetchDeviceList} from "../hooks/deckVerifiedApi";
-import {PanelSocialButton} from "./elements/socialButton";
+import type {Devices, PluginConfig} from "../../interfaces";
+import {getPluginConfig, setPluginConfig} from "../../constants";
+import {fetchDeviceList} from "../../hooks/deckVerifiedApi";
+import {PanelSocialButton} from "../elements/socialButton";
 import {SiDiscord, SiGithub, SiKofi, SiPatreon} from "react-icons/si";
 
 interface PluginConfigViewProps {

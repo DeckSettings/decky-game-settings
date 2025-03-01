@@ -7,9 +7,9 @@ import {
 } from "@decky/ui";
 import {useState, useEffect} from "react";
 import {MdArrowBack} from "react-icons/md";
-import {TextFieldModal} from "./elements/TextFieldModal";
-import type {GameInfo} from "../interfaces";
-import {getGamesBySearchTerm} from "../hooks/deckVerifiedApi";
+import {TextFieldModal} from "../elements/TextFieldModal";
+import type {GameInfo} from "../../interfaces";
+import {getGamesBySearchTerm} from "../../hooks/deckVerifiedApi";
 
 interface SearchResultsViewProps {
     query: string;

@@ -7,11 +7,11 @@ import {
     Focusable,
 } from "@decky/ui";
 import {useState, useEffect} from 'react';
-import {getGamesList} from "../hooks/gameLibrary"
-import type {GameInfo, PluginPage} from "../interfaces";
-import {TextFieldModal} from "./elements/TextFieldModal";
+import {getGamesList} from "../../hooks/gameLibrary"
+import type {GameInfo, PluginPage} from "../../interfaces";
+import {TextFieldModal} from "../elements/TextFieldModal";
 import {MdSettings} from "react-icons/md";
-import {getPluginConfig} from "../constants";
+import {getPluginConfig} from "../../constants";
 
 
 interface GameSelectViewProps {

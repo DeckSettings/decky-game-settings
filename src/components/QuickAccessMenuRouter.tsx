@@ -1,16 +1,27 @@
 import React, {useEffect, useState} from 'react';
-import GameSelectView from "./GameSelectView";
-import GameDetailsView from "./GameDetailsView";
-import SearchResultsView from "./SearchResultsView";
+import GameSelectView from "./views/GameSelectView";
+import GameDetailsView from "./views/GameDetailsView";
+import SearchResultsView from "./views/SearchResultsView";
 import type {GameInfo, PluginPage} from "../interfaces";
-import PluginConfigView from "./PluginConfigView";
+import PluginConfigView from "./views/PluginConfigView";
 import {Footer} from "./elements/authorFooter";
 
-const QuickAccessView: React.FC = () => {
-    const [currentPage, setCurrentPage] = useState<PluginPage>("game_select");
+const QuickAccessMenuRouter: React.FC = () => {
+    const [pageHistory, setPageHistory] = useState<PluginPage[]>(["game_select"]);
+    const currentPage = pageHistory[pageHistory.length - 1];
     const changePage = (page: PluginPage) => {
         console.log(`[QuickAccessView] Changing page to: ${page}`);
-        setCurrentPage(page);
+        setPageHistory(prev => [...prev, page]);
+    };
+    const handleGoBack = () => {
+        setPageHistory(prev => {
+            if (prev.length > 1) {
+                const newHistory = prev.slice(0, prev.length - 1);
+                console.log(`[QuickAccessView] Going back to: ${newHistory[newHistory.length - 1]}`);
+                return newHistory;
+            }
+            return prev;
+        })
     };
 
     const [gameSearchText, setGameSearchText] = useState<string>("");
@@ -35,7 +46,7 @@ const QuickAccessView: React.FC = () => {
         <div>
             {currentPage === "plugin_config" && (
                 <PluginConfigView
-                    onGoBack={() => changePage("game_select")}
+                    onGoBack={handleGoBack}
                 />
             )}
             {currentPage === "game_select" && (
@@ -50,14 +61,14 @@ const QuickAccessView: React.FC = () => {
                     query={gameSearchText}
                     onGameSelect={handleGameSelect}
                     onSearch={handleSearch}
-                    onGoBack={() => changePage("game_select")}
+                    onGoBack={handleGoBack}
                 />
             )}
             {currentPage === "game_data" && selectedGame && (
                 <GameDetailsView
                     gameName={selectedGame.title}
                     appId={selectedGame.appId}
-                    onGoBack={() => changePage("game_select")}
+                    onGoBack={handleGoBack}
                 />
             )}
 
@@ -67,4 +78,4 @@ const QuickAccessView: React.FC = () => {
     );
 };
 
-export default QuickAccessView;
+export default QuickAccessMenuRouter;

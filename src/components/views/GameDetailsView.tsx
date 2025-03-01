@@ -10,12 +10,12 @@ import {
     staticClasses
 } from "@decky/ui";
 import GameReportView from "./GameReportView";
-import {hasYoutubeLink, reportsWebsiteBaseUrl} from "../constants";
-import type {ExternalReview, GameMetadata, GameReport} from "../interfaces";
+import {hasYoutubeLink, reportsWebsiteBaseUrl} from "../../constants";
+import type {ExternalReview, GameMetadata, GameReport} from "../../interfaces";
 import {MdArrowBack, MdWeb} from "react-icons/md";
-import {fetchGameDataByAppId, fetchGameDataByGameName} from "../hooks/deckVerifiedApi";
-import {getPluginConfig} from "../constants";
-import {PanelSocialButton} from "./elements/socialButton";
+import {fetchGameDataByAppId, fetchGameDataByGameName} from "../../hooks/deckVerifiedApi";
+import {getPluginConfig} from "../../constants";
+import {PanelSocialButton} from "../elements/socialButton";
 import {TbBrandYoutubeFilled, TbReport} from "react-icons/tb";
 
 const deckVerifiedIconSrc = "https://deckverified.games/deck-verified/assets/logo-dark-DRV01ZBg.png"

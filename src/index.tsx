@@ -5,7 +5,7 @@ import {
     definePlugin,
 } from "@decky/api"
 import {MdTune} from "react-icons/md";
-import QuickAccessView from "./components/QuickAccessView";
+import QuickAccessMenuRouter from "./components/QuickAccessMenuRouter";
 
 export default definePlugin(() => {
     console.log("Plugin initializing, this is called once on frontend startup")
@@ -18,7 +18,7 @@ export default definePlugin(() => {
         // Preserve the plugin's state while the QAM is closed
         alwaysRender: true,
         // The content of your plugin's menu
-        content: <QuickAccessView/>,
+        content: <QuickAccessMenuRouter/>,
         // The icon displayed in the plugin list
         icon: <MdTune/>,
         // The function triggered when your plugin unloads
