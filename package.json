@@ -1,6 +1,6 @@
 {
   "name": "decky-game-settings",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "A plugin for Decky Loader that fetches and displays community-driven game compatibility and configuration reports directly from the Deck Settings API.",
   "type": "module",
   "scripts": {
