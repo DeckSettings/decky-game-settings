@@ -10,7 +10,7 @@ import {
     staticClasses
 } from "@decky/ui";
 import GameReportView from "./GameReportView";
-import {hasYoutubeLink, reportsWebsiteBaseUrl} from "../../constants";
+import {formatMinutes, hasYoutubeLink, reportsWebsiteBaseUrl} from "../../constants";
 import type {ExternalReview, GameMetadata, GameReport} from "../../interfaces";
 import {MdArrowBack, MdWeb} from "react-icons/md";
 import {fetchGameDataByAppId, fetchGameDataByGameName} from "../../hooks/deckVerifiedApi";
@@ -292,7 +292,7 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({gameName, appId, onGoB
                                                                 }}>Device:</strong>
                                                                 {gameReport.data.device}
                                                             </li>
-                                                            {gameReport.data.target_framerate && gameReport.data.target_framerate.length > 0 && (
+                                                            {gameReport.data.target_framerate && (
                                                                 <li style={{
                                                                     display: 'table',
                                                                     textAlign: 'right',
@@ -307,6 +307,23 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({gameName, appId, onGoB
                                                                         paddingRight: '3px',
                                                                     }}>Target Framerate:</strong>
                                                                     {gameReport.data.target_framerate}
+                                                                </li>
+                                                            )}
+                                                            {gameReport.data.calculated_battery_life_minutes && (
+                                                                <li style={{
+                                                                    display: 'table',
+                                                                    textAlign: 'right',
+                                                                    width: '100%',
+                                                                    borderBottom: '1px solid #333',
+                                                                    paddingTop: '2px',
+                                                                    paddingBottom: '2px',
+                                                                }}>
+                                                                    <strong style={{
+                                                                        display: 'table-cell',
+                                                                        textAlign: 'left',
+                                                                        paddingRight: '3px',
+                                                                    }}>Estimated Battery Life:</strong>
+                                                                    {formatMinutes(gameReport.data.calculated_battery_life_minutes)}
                                                                 </li>
                                                             )}
                                                             {hasYoutubeLink(gameReport.data.additional_notes) && (
@@ -487,7 +504,7 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({gameName, appId, onGoB
                                                                 }}>Device:</strong>
                                                                 {review.data.device}
                                                             </li>
-                                                            {review.data.target_framerate && review.data.target_framerate.length > 0 && (
+                                                            {review.data.target_framerate && (
                                                                 <li style={{
                                                                     display: 'table',
                                                                     textAlign: 'right',
@@ -502,6 +519,23 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({gameName, appId, onGoB
                                                                         paddingRight: '3px',
                                                                     }}>Target Framerate:</strong>
                                                                     {review.data.target_framerate}
+                                                                </li>
+                                                            )}
+                                                            {review.data.calculated_battery_life_minutes && (
+                                                                <li style={{
+                                                                    display: 'table',
+                                                                    textAlign: 'right',
+                                                                    width: '100%',
+                                                                    borderBottom: '1px solid #333',
+                                                                    paddingTop: '2px',
+                                                                    paddingBottom: '2px',
+                                                                }}>
+                                                                    <strong style={{
+                                                                        display: 'table-cell',
+                                                                        textAlign: 'left',
+                                                                        paddingRight: '3px',
+                                                                    }}>Estimated Battery Life:</strong>
+                                                                    {formatMinutes(review.data.calculated_battery_life_minutes)}
                                                                 </li>
                                                             )}
                                                             {hasYoutubeLink(review.data.additional_notes) && (

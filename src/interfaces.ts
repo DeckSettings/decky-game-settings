@@ -70,8 +70,9 @@ export interface GameReportData {
     game_name: string;
     app_id: number;
     launcher: string;
-    device_compatibility: string;
     target_framerate: string;
+    average_battery_power_draw: string | null;
+    calculated_battery_life_minutes: number | null;
     device: string;
     os_version: string;
     undervolt_applied: string | null;

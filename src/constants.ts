@@ -61,3 +61,17 @@ export const hasYoutubeLink = (text: string): boolean => {
     const regex = /(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
     return regex.test(text);
 }
+
+export const formatMinutes = (minutes: number): string => {
+    if (minutes < 60) {
+        return `${minutes} ${minutes === 1 ? "min" : "mins"}`;
+    }
+    const hours = Math.floor(minutes / 60);
+    const remainingMins = minutes % 60;
+    const hourStr = hours === 1 ? "hour" : "hours";
+    const minuteStr = remainingMins === 1 ? "min" : "mins";
+    if (remainingMins === 0) {
+        return `${hours} ${hourStr}`;
+    }
+    return `${hours} ${hourStr}, ${remainingMins} ${minuteStr}`;
+}
