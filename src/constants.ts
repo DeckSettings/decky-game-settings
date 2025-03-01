@@ -56,3 +56,8 @@ export const setPluginConfig = (updates: Partial<PluginConfig>): void => {
         console.error("Failed to save plugin config:", error);
     }
 };
+
+export const hasYoutubeLink = (text: string): boolean => {
+    const regex = /(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
+    return regex.test(text);
+}

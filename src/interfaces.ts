@@ -34,6 +34,7 @@ export interface GameDetails {
     appId?: number;
     metadata: GameMetadata;
     reports: GameReport[];
+    external_reviews: ExternalReview[];
 }
 
 export interface GameMetadata {
@@ -105,4 +106,18 @@ export interface GitHubIssueLabel {
     color: string;
     default: boolean;
     description: string | null;
+}
+
+export interface ExternalReview {
+    id: number;
+    title: string;
+    html_url: string;
+    data: GameReportData;
+    source: {
+        name: string;
+        avatar_url: string;
+        report_count: number;
+    };
+    created_at: string;
+    updated_at: string;
 }

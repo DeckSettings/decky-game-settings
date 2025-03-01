@@ -4,7 +4,7 @@ import GameDetailsView from "./GameDetailsView";
 import SearchResultsView from "./SearchResultsView";
 import type {GameInfo, PluginPage} from "../interfaces";
 import PluginConfigView from "./PluginConfigView";
-
+import {Footer} from "./elements/authorFooter";
 
 const QuickAccessView: React.FC = () => {
     const [currentPage, setCurrentPage] = useState<PluginPage>("game_select");
@@ -60,9 +60,11 @@ const QuickAccessView: React.FC = () => {
                     onGoBack={() => changePage("game_select")}
                 />
             )}
+
+            {/* Footer */}
+            <Footer/>
         </div>
-    )
-        ;
+    );
 };
 
 export default QuickAccessView;

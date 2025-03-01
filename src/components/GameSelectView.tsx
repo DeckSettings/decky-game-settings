@@ -1,10 +1,10 @@
 import {
-    ButtonItem,
     DialogButton,
     PanelSection,
     PanelSectionRow,
     TextField,
-    showModal, Focusable,
+    showModal,
+    Focusable,
 } from "@decky/ui";
 import {useState, useEffect} from 'react';
 import {getGamesList} from "../hooks/gameLibrary"
@@ -83,6 +83,7 @@ const GameSelectView: React.FC<GameSelectViewProps> = ({onGameSelect, onSearch, 
                 <PanelSection title="Current Game">
                     <PanelSectionRow key={`${currentlyRunningGame.appId}${currentlyRunningGame.title}`}>
                         <DialogButton
+                            style={{padding: '3px', fontSize: '14px', marginBottom: '10px'}}
                             key={currentlyRunningGame.appId}
                             onClick={() => handleGameSelect(currentlyRunningGame)}
                         >
@@ -96,13 +97,13 @@ const GameSelectView: React.FC<GameSelectViewProps> = ({onGameSelect, onSearch, 
             <PanelSection title="Installed Games">
                 {installedGames.map((game) => (
                     <PanelSectionRow key={`${game.appId}${game.title}`}>
-                        <ButtonItem
-                            layout="below"
+                        <DialogButton
+                            style={{padding: '3px', fontSize: '14px', marginBottom: '10px'}}
                             key={game.appId}
                             onClick={() => handleGameSelect(game)}
                         >
                             {game.title}
-                        </ButtonItem>
+                        </DialogButton>
                     </PanelSectionRow>
                 ))}
             </PanelSection>
@@ -111,13 +112,13 @@ const GameSelectView: React.FC<GameSelectViewProps> = ({onGameSelect, onSearch, 
                 <PanelSection title="All Other Games">
                     {nonInstalledGames.map((game) => (
                         <PanelSectionRow key={`${game.appId}${game.title}`}>
-                            <ButtonItem
-                                layout="below"
+                            <DialogButton
+                                style={{padding: '3px', fontSize: '14px', marginBottom: '10px'}}
                                 key={game.appId}
                                 onClick={() => handleGameSelect(game)}
                             >
                                 {game.title}
-                            </ButtonItem>
+                            </DialogButton>
                         </PanelSectionRow>
                     ))}
                 </PanelSection>

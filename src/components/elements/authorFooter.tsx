@@ -4,7 +4,7 @@ import {fetchNoCors} from "@decky/api";
 const fetchAvatarImage = async (): Promise<string | null> => {
     try {
         const res = await fetchNoCors(
-            "https://deckverified.games/deck-verified/api/v1/images/plugin/decky-virtual-surround-sound/avatar.jpg",
+            "https://deckverified.games/deck-verified/api/v1/images/plugin/decky-game-settings/avatar.jpg",
             {method: "GET"}
         );
         if (!res.ok) {

@@ -3,7 +3,7 @@ import type {GameDetails, Devices, GameInfo, GameSearchResult, GitHubIssueLabel}
 import {fetchNoCors} from "@decky/api";
 
 export const fetchGameDataByAppId = async (appId: number): Promise<GameDetails | null> => {
-    const url = `${reportsApiBaseUrl}/game_details?appid=${appId}&include_external=false`;
+    const url = `${reportsApiBaseUrl}/game_details?appid=${appId}&include_external=true`;
     const res = await fetchNoCors(url, {
         method: 'GET'
     });
