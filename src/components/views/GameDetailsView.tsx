@@ -504,6 +504,36 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({gameName, appId, onGoB
                                                                     {review.data.target_framerate}
                                                                 </li>
                                                             )}
+                                                            {hasYoutubeLink(review.data.additional_notes) && (
+                                                                <li style={{
+                                                                    display: 'table',
+                                                                    textAlign: 'right',
+                                                                    width: '100%',
+                                                                    borderBottom: '1px solid #333',
+                                                                    paddingTop: '2px',
+                                                                    paddingBottom: '2px',
+                                                                }}>
+
+                                                                    <strong style={{
+                                                                        display: 'table-cell',
+                                                                        verticalAlign: 'middle',
+                                                                        textAlign: 'left',
+                                                                        paddingRight: '3px',
+                                                                    }}>
+                                                                        <TbBrandYoutubeFilled
+                                                                            style={{
+                                                                                display: 'table-cell',
+                                                                                verticalAlign: 'middle',
+                                                                                height: '100%',
+                                                                                paddingRight: '10px',
+                                                                                paddingLeft: '5px'
+                                                                            }}
+                                                                            fill="#FF0000"
+                                                                        />
+                                                                    </strong>
+                                                                    Includes YouTube Video
+                                                                </li>
+                                                            )}
                                                         </ul>
                                                         <div style={{
                                                             margin: 0,
