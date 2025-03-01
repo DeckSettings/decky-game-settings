@@ -292,21 +292,23 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({gameName, appId, onGoB
                                                                 }}>Device:</strong>
                                                                 {gameReport.data.device}
                                                             </li>
-                                                            <li style={{
-                                                                display: 'table',
-                                                                textAlign: 'right',
-                                                                width: '100%',
-                                                                borderBottom: '1px solid #333',
-                                                                paddingTop: '2px',
-                                                                paddingBottom: '2px',
-                                                            }}>
-                                                                <strong style={{
-                                                                    display: 'table-cell',
-                                                                    textAlign: 'left',
-                                                                    paddingRight: '3px',
-                                                                }}>Target Framerate:</strong>
-                                                                {gameReport.data.target_framerate}
-                                                            </li>
+                                                            {gameReport.data.target_framerate && gameReport.data.target_framerate.length > 0 && (
+                                                                <li style={{
+                                                                    display: 'table',
+                                                                    textAlign: 'right',
+                                                                    width: '100%',
+                                                                    borderBottom: '1px solid #333',
+                                                                    paddingTop: '2px',
+                                                                    paddingBottom: '2px',
+                                                                }}>
+                                                                    <strong style={{
+                                                                        display: 'table-cell',
+                                                                        textAlign: 'left',
+                                                                        paddingRight: '3px',
+                                                                    }}>Target Framerate:</strong>
+                                                                    {gameReport.data.target_framerate}
+                                                                </li>
+                                                            )}
                                                             {hasYoutubeLink(gameReport.data.additional_notes) && (
                                                                 <li style={{
                                                                     display: 'table',
@@ -485,21 +487,23 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({gameName, appId, onGoB
                                                                 }}>Device:</strong>
                                                                 {review.data.device}
                                                             </li>
-                                                            <li style={{
-                                                                display: 'table',
-                                                                textAlign: 'right',
-                                                                width: '100%',
-                                                                borderBottom: '1px solid #333',
-                                                                paddingTop: '2px',
-                                                                paddingBottom: '2px',
-                                                            }}>
-                                                                <strong style={{
-                                                                    display: 'table-cell',
-                                                                    textAlign: 'left',
-                                                                    paddingRight: '3px',
-                                                                }}>Target Framerate:</strong>
-                                                                {review.data.target_framerate}
-                                                            </li>
+                                                            {review.data.target_framerate && review.data.target_framerate.length > 0 && (
+                                                                <li style={{
+                                                                    display: 'table',
+                                                                    textAlign: 'right',
+                                                                    width: '100%',
+                                                                    borderBottom: '1px solid #333',
+                                                                    paddingTop: '2px',
+                                                                    paddingBottom: '2px',
+                                                                }}>
+                                                                    <strong style={{
+                                                                        display: 'table-cell',
+                                                                        textAlign: 'left',
+                                                                        paddingRight: '3px',
+                                                                    }}>Target Framerate:</strong>
+                                                                    {review.data.target_framerate}
+                                                                </li>
+                                                            )}
                                                         </ul>
                                                         <div style={{
                                                             margin: 0,
