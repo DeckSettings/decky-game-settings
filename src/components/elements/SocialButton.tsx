@@ -7,7 +7,7 @@ import {
 } from '@decky/ui';
 import {FC, ReactNode} from 'react';
 import {HiQrCode} from 'react-icons/hi2';
-import {showQrModal} from "./showQrModal";
+import {showQrModal} from "./ShowQrModal";
 
 
 const navLink = (url: string) => {

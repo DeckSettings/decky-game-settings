@@ -11,7 +11,7 @@ import {MdArrowBack} from "react-icons/md";
 import type {Devices, PluginConfig} from "../../interfaces";
 import {getPluginConfig, setPluginConfig} from "../../constants";
 import {fetchDeviceList} from "../../hooks/deckVerifiedApi";
-import {PanelSocialButton} from "../elements/socialButton";
+import {PanelSocialButton} from "../elements/SocialButton";
 import {SiDiscord, SiGithub, SiKofi, SiPatreon} from "react-icons/si";
 
 interface PluginConfigViewProps {
@@ -59,18 +59,29 @@ const PluginConfigView: React.FC<PluginConfigViewProps> = ({onGoBack,}) => {
     }, []);
 
     return (
-        <div>
+        <>
             <div>
-                <PanelSection>
-                    <Focusable style={{display: 'flex', alignItems: 'center', gap: '1rem'}}
-                               flow-children="horizontal">
+                <div style={{padding: '16px 16px 3px 16px', margin: 0}}>
+                    <Focusable style={{display: 'flex', alignItems: 'stretch', gap: '1rem'}} flow-children="horizontal">
                         <DialogButton
-                            style={{width: '30%', minWidth: 0}}
+                            // @ts-ignore
+                            autoFocus={true}
+                            retainFocus={true}
+                            style={{
+                                width: '30%',
+                                minWidth: 0,
+                                padding: '3px',
+                                fontSize: '14px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '1rem'
+                            }}
                             onClick={onGoBack}>
                             <MdArrowBack/>
                         </DialogButton>
                     </Focusable>
-                </PanelSection>
+                </div>
                 <hr/>
             </div>
             <PanelSection title="Plugin Configuration">
@@ -144,7 +155,7 @@ const PluginConfigView: React.FC<PluginConfigViewProps> = ({onGoBack,}) => {
                     </PanelSection>
                 </div>
             )}
-        </div>
+        </>
     );
 };
 

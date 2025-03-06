@@ -1,12 +1,11 @@
 import {
     PanelSection,
     PanelSectionRow,
-    ButtonItem,
     Spinner,
-    DialogButton, Focusable, TextField, showModal, staticClasses,
+    DialogButton, Focusable, showModal, staticClasses,
 } from "@decky/ui";
 import {useState, useEffect} from "react";
-import {MdArrowBack} from "react-icons/md";
+import {MdArrowBack, MdSearch} from "react-icons/md";
 import {TextFieldModal} from "../elements/TextFieldModal";
 import type {GameInfo} from "../../interfaces";
 import {getGamesBySearchTerm} from "../../hooks/deckVerifiedApi";
@@ -41,30 +40,50 @@ const SearchResultsView: React.FC<SearchResultsViewProps> = ({query, onGameSelec
     }, [query]);
 
     return (
-        <div>
+        <>
             <div>
-                <PanelSection>
-                    <Focusable style={{display: 'flex', alignItems: 'center', gap: '1rem'}}
+                <div style={{padding: '16px 16px 3px 16px', margin: 0}}>
+                    <Focusable style={{display: 'flex', alignItems: 'stretch', gap: '1rem'}}
                                flow-children="horizontal">
                         <DialogButton
-                            style={{width: '30%', minWidth: 0}}
+                            // @ts-ignore
+                            autoFocus={true}
+                            retainFocus={true}
+                            style={{
+                                width: '30%',
+                                minWidth: 0,
+                                padding: '3px',
+                                fontSize: '14px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '1rem'
+                            }}
                             onClick={onGoBack}>
                             <MdArrowBack/>
                         </DialogButton>
-                        <div style={{width: '70%', minWidth: 0}}>
-                            <TextField
-                                label="Search"
-                                onClick={() => showModal(
-                                    <TextFieldModal
-                                        label="Search"
-                                        placeholder="Game name or appid"
-                                        onClosed={onSearch}
-                                    />
-                                )}
-                            />
-                        </div>
+                        <DialogButton
+                            style={{
+                                width: '70%',
+                                minWidth: 0,
+                                padding: '3px',
+                                fontSize: '14px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '1rem'
+                            }}
+                            onClick={() => showModal(
+                                <TextFieldModal
+                                    label="Search"
+                                    placeholder="Game name or appid"
+                                    onClosed={onSearch}
+                                />
+                            )}>
+                            <MdSearch/> Search
+                        </DialogButton>
                     </Focusable>
-                </PanelSection>
+                </div>
                 <hr/>
             </div>
             <PanelSection>
@@ -102,9 +121,12 @@ const SearchResultsView: React.FC<SearchResultsViewProps> = ({query, onGameSelec
                         </div>
                         {searchResults.map((game, index) => (
                             <PanelSectionRow key={index}>
-                                <ButtonItem layout="below" onClick={() => onGameSelect(game)}>
+                                <DialogButton
+                                    style={{padding: '3px', fontSize: '14px', marginBottom: '10px'}}
+                                    key={game.title}
+                                    onClick={() => onGameSelect(game)}>
                                     {game.title}
-                                </ButtonItem>
+                                </DialogButton>
                             </PanelSectionRow>
                         ))}
                     </>
@@ -112,7 +134,7 @@ const SearchResultsView: React.FC<SearchResultsViewProps> = ({query, onGameSelec
                     <div>No results found</div>
                 )}
             </PanelSection>
-        </div>
+        </>
     );
 };
 

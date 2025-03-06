@@ -2,7 +2,6 @@ import {
     DialogButton,
     PanelSection,
     PanelSectionRow,
-    TextField,
     showModal,
     Focusable,
 } from "@decky/ui";
@@ -10,7 +9,7 @@ import {useState, useEffect} from 'react';
 import {getGamesList} from "../../hooks/gameLibrary"
 import type {GameInfo, PluginPage} from "../../interfaces";
 import {TextFieldModal} from "../elements/TextFieldModal";
-import {MdSettings} from "react-icons/md";
+import {MdSearch, MdSettings} from "react-icons/md";
 import {getPluginConfig} from "../../constants";
 
 
@@ -52,30 +51,50 @@ const GameSelectView: React.FC<GameSelectViewProps> = ({onGameSelect, onSearch, 
     }, []);
 
     return (
-        <div>
+        <>
             <div>
-                <PanelSection>
-                    <Focusable style={{display: 'flex', alignItems: 'center', gap: '1rem'}}
+                <div style={{padding: '16px 16px 3px 16px', margin: 0}}>
+                    <Focusable style={{display: 'flex', alignItems: 'stretch', gap: '1rem'}}
                                flow-children="horizontal">
                         <DialogButton
-                            style={{width: '30%', minWidth: 0}}
+                            // @ts-ignore
+                            autoFocus={true}
+                            retainFocus={true}
+                            style={{
+                                width: '30%',
+                                minWidth: 0,
+                                padding: '3px',
+                                fontSize: '14px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '1rem'
+                            }}
                             onClick={() => onChangePage("plugin_config")}>
                             <MdSettings/>
                         </DialogButton>
-                        <div style={{width: '70%', minWidth: 0}}>
-                            <TextField
-                                label="Search"
-                                onClick={() => showModal(
-                                    <TextFieldModal
-                                        label="Search"
-                                        placeholder="Game name or appid"
-                                        onClosed={onSearch}
-                                    />
-                                )}
-                            />
-                        </div>
+                        <DialogButton
+                            style={{
+                                width: '70%',
+                                minWidth: 0,
+                                padding: '3px',
+                                fontSize: '14px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '1rem'
+                            }}
+                            onClick={() => showModal(
+                                <TextFieldModal
+                                    label="Search"
+                                    placeholder="Game name or appid"
+                                    onClosed={onSearch}
+                                />
+                            )}>
+                            <MdSearch/> Search
+                        </DialogButton>
                     </Focusable>
-                </PanelSection>
+                </div>
                 <hr/>
             </div>
 
@@ -125,7 +144,7 @@ const GameSelectView: React.FC<GameSelectViewProps> = ({onGameSelect, onSearch, 
             ) : null}
             {currentlyRunningGame ? (<hr/>) : null}
 
-        </div>
+        </>
     );
 };
 

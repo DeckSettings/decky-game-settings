@@ -4,7 +4,7 @@ import GameDetailsView from "./views/GameDetailsView";
 import SearchResultsView from "./views/SearchResultsView";
 import type {GameInfo, PluginPage} from "../interfaces";
 import PluginConfigView from "./views/PluginConfigView";
-import {Footer} from "./elements/authorFooter";
+import {Footer} from "./elements/AuthorFooter";
 
 const QuickAccessMenuRouter: React.FC = () => {
     const [pageHistory, setPageHistory] = useState<PluginPage[]>(["game_select"]);

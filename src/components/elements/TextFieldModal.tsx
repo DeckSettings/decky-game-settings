@@ -35,7 +35,6 @@ export const TextFieldModal = ({closeModal, onClosed, label, placeholder}: props
                 label={label}
                 placeholder={placeholder}
                 onChange={handleText}
-
             />
         </ModalRoot>
     );

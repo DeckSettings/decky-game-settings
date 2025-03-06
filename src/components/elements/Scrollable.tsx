@@ -1,9 +1,3 @@
-// Scrollable.tsx
-/*
- * Source: https://github.com/davocarli/sharedeck-y/blob/28a30fba3d1f3a18d181c90810cb8a1a0c2b9ba5/src/components/Scrollable/index.tsx
- * Acknowledgements to the original developer: davocarli
- */
-
 import {FC, ForwardRefExoticComponent} from "react"
 import {
     Focusable,

@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {PanelSection, Focusable, DialogButton, Navigation, Router} from "@decky/ui";
 import ReactMarkdown, {Components} from 'react-markdown';
-import {Scrollable, scrollableRef, ScrollArea} from "../elements/ScrollableList";
+import {Scrollable, scrollableRef, ScrollArea} from "../elements/Scrollable";
 import {reportsWebsiteBaseUrl} from "../../constants";
 import type {ExternalReview, GameReport} from "../../interfaces";
 import {MdArrowBack, MdWeb} from "react-icons/md";
@@ -200,173 +200,205 @@ const GameReportView: React.FC<GameReportViewProps> = ({gameReport, onGoBack}) =
             }
             `}</style>
             <div>
-                <PanelSection>
-                    <Focusable style={{display: 'flex', alignItems: 'center', gap: '1rem'}} flow-children="horizontal">
+                <div style={{padding: '16px 16px 3px 16px', margin: 0}}>
+                    <Focusable style={{display: 'flex', alignItems: 'stretch', gap: '1rem'}} flow-children="horizontal">
                         <DialogButton
                             // @ts-ignore
                             autoFocus={true}
-                            style={{width: '50%', minWidth: 0}}
+                            retainFocus={true}
+                            style={{
+                                width: '30%',
+                                minWidth: 0,
+                                padding: '3px',
+                                fontSize: '14px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '1rem'
+                            }}
                             onClick={onGoBack}>
                             <MdArrowBack/>
                         </DialogButton>
                         <DialogButton
-                            style={{width: '50%', minWidth: 0}}
+                            style={{
+                                width: '70%',
+                                minWidth: 0,
+                                padding: '3px',
+                                fontSize: '14px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '1rem'
+                            }}
                             onClick={() => {
                                 if (gameReport) {
                                     if (isExternalReview(gameReport)) {
                                         openWeb(gameReport.html_url);
                                     } else {
                                         if (gameReport.data.app_id) {
-                                            openWeb(`${reportsWebsiteBaseUrl}/app/${gameReport.data.app_id}`);
+                                            openWeb(`${reportsWebsiteBaseUrl}/app/${gameReport.data.app_id}?expandedId=${gameReport.id}`);
                                         } else {
-                                            openWeb(`${reportsWebsiteBaseUrl}/game/${gameReport.data.game_name}`);
+                                            openWeb(`${reportsWebsiteBaseUrl}/game/${gameReport.data.game_name}?expandedId=${gameReport.id}`);
                                         }
                                     }
                                 }
                             }}>
-                            <MdWeb/>
+                            <MdWeb/> Open in browser
                         </DialogButton>
                     </Focusable>
-                </PanelSection>
+                </div>
                 <hr/>
             </div>
 
-            {gameReport && (
-                <div className="game-report"
-                     style={{display: 'flex', alignItems: 'center', justifyContent: 'right', margin: '10px'}}>
-                    {isExternalReview(gameReport) ? (
-                        <>
-                            <img
-                                src={gameReport.source.avatar_url}
-                                alt="Source Avatar"
-                                style={{height: '18px', marginLeft: '3px'}}
-                            />
-                            <span style={{
-                                padding: '0 0 3px 3px',
-                                margin: 0,
-                                color: 'white',
-                                fontWeight: 'bold',
-                                fontSize: '14px',
-                                lineHeight: '16px',
-                            }}>
-                            {gameReport.source.name}
-                          </span>
-                        </>
-                    ) : (
-                        <>
-                            <img
-                                src={gameReport.user.avatar_url}
-                                alt="User Avatar"
-                                style={{height: '18px', marginLeft: '3px'}}
-                            />
-                            <span style={{
-                                padding: '0 0 3px 3px',
-                                margin: 0,
-                                color: 'white',
-                                fontWeight: 'bold',
-                                fontSize: '14px',
-                                lineHeight: '16px',
-                            }}>
-                            {gameReport.user.login}
-                          </span>
-                        </>
-                    )}
-                </div>
-            )}
-
-            {youTubeVideoId && (
-                <div className="game-report"
-                     style={{display: 'flex', alignItems: 'center', justifyContent: 'right', margin: '10px'}}>
-                    <iframe
-                        className="yt-embed"
-                        src={`https://www.youtube.com/embed/${youTubeVideoId}?fs=0&controls=0`}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen={false}>
-                        {`Loading embedded YT player for link https://youtu.be/${youTubeVideoId}`}
-                    </iframe>
-                </div>
-            )}
 
             <Scrollable ref={ref} className="game-report">
                 <ScrollArea scrollable={ref}>
-                    <div className="game-report-section">
-                        <PanelSection title="System Configuration">
-                            <div className="game-report-section-body">
-                                <ul>
-                                    {systemConfigurationData.map(([key, value]) => (
-                                        <li key={key}>
-                                            <strong>
-                                                {key}
-                                            </strong>
-                                            {value}
-                                        </li>
-                                    ))}
-                                </ul>
+                    <>
+                        {gameReport && (
+                            <div className="game-report"
+                                 style={{
+                                     display: 'flex',
+                                     alignItems: 'center',
+                                     justifyContent: 'right',
+                                     margin: '10px'
+                                 }}>
+                                {isExternalReview(gameReport) ? (
+                                    <>
+                                        <img
+                                            src={gameReport.source.avatar_url}
+                                            alt="Source Avatar"
+                                            style={{height: '18px', marginLeft: '3px'}}
+                                        />
+                                        <span style={{
+                                            padding: '0 0 3px 3px',
+                                            margin: 0,
+                                            color: 'white',
+                                            fontWeight: 'bold',
+                                            fontSize: '14px',
+                                            lineHeight: '16px',
+                                        }}>
+                            {gameReport.source.name}
+                          </span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <img
+                                            src={gameReport.user.avatar_url}
+                                            alt="User Avatar"
+                                            style={{height: '18px', marginLeft: '3px'}}
+                                        />
+                                        <span style={{
+                                            padding: '0 0 3px 3px',
+                                            margin: 0,
+                                            color: 'white',
+                                            fontWeight: 'bold',
+                                            fontSize: '14px',
+                                            lineHeight: '16px',
+                                        }}>
+                            {gameReport.user.login}
+                          </span>
+                                    </>
+                                )}
                             </div>
-                        </PanelSection>
-                        <hr/>
-                    </div>
+                        )}
 
-                    <div className="game-report-section">
-                        <PanelSection title="Performance Settings">
-                            <div className="game-report-section-body">
-                                <ul>
-                                    {performanceSettingsData.map(([key, value]) => (
-                                        <li key={key}>
-                                            <strong>
-                                                {key}
-                                            </strong>
-                                            {value}
-                                        </li>
-                                    ))}
-                                </ul>
+                        {youTubeVideoId && (
+                            <div className="game-report"
+                                 style={{
+                                     display: 'flex',
+                                     alignItems: 'center',
+                                     justifyContent: 'right',
+                                     margin: '10px'
+                                 }}>
+                                <iframe
+                                    className="yt-embed"
+                                    src={`https://www.youtube.com/embed/${youTubeVideoId}?fs=0&controls=0`}
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen={false}>
+                                    {`Loading embedded YT player for link https://youtu.be/${youTubeVideoId}`}
+                                </iframe>
                             </div>
-                        </PanelSection>
-                        <hr/>
-                    </div>
+                        )}
 
-                    {gameReport && gameReport.data.game_display_settings && (
                         <div className="game-report-section">
-                            <PanelSection title="Game Display Settings">
+                            <PanelSection title="System Configuration">
                                 <div className="game-report-section-body">
-                                    <ReactMarkdown rehypePlugins={[rehypeSanitize]}
-                                                   components={markdownComponents}>
-                                        {gameReport.data.game_display_settings || ''}
-                                    </ReactMarkdown>
+                                    <ul>
+                                        {systemConfigurationData.map(([key, value]) => (
+                                            <li key={key}>
+                                                <strong>
+                                                    {key}
+                                                </strong>
+                                                {value}
+                                            </li>
+                                        ))}
+                                    </ul>
                                 </div>
                             </PanelSection>
                             <hr/>
                         </div>
-                    )}
 
-                    {gameReport && gameReport.data.game_graphics_settings && (
                         <div className="game-report-section">
-                            <PanelSection title="Game Graphics Settings">
+                            <PanelSection title="Performance Settings">
                                 <div className="game-report-section-body">
-                                    <ReactMarkdown rehypePlugins={[rehypeSanitize]}
-                                                   components={markdownComponents}>
-                                        {gameReport.data.game_graphics_settings || ''}
-                                    </ReactMarkdown>
+                                    <ul>
+                                        {performanceSettingsData.map(([key, value]) => (
+                                            <li key={key}>
+                                                <strong>
+                                                    {key}
+                                                </strong>
+                                                {value}
+                                            </li>
+                                        ))}
+                                    </ul>
                                 </div>
                             </PanelSection>
                             <hr/>
                         </div>
-                    )}
 
-                    {gameReport && gameReport.data.additional_notes && (
-                        <div className="game-report-section">
-                            <PanelSection title="Additional Notes">
-                                <div className="game-report-section-body">
-                                    <ReactMarkdown remarkPlugins={[remarkGfm]}
-                                                   rehypePlugins={[rehypeSanitize]}
-                                                   components={markdownComponents}>
-                                        {gameReport.data.additional_notes || ''}
-                                    </ReactMarkdown>
-                                </div>
-                            </PanelSection>
-                            <hr/>
-                        </div>
-                    )}
+                        {gameReport && gameReport.data.game_display_settings && (
+                            <div className="game-report-section">
+                                <PanelSection title="Game Display Settings">
+                                    <div className="game-report-section-body">
+                                        <ReactMarkdown rehypePlugins={[rehypeSanitize]}
+                                                       components={markdownComponents}>
+                                            {gameReport.data.game_display_settings || ''}
+                                        </ReactMarkdown>
+                                    </div>
+                                </PanelSection>
+                                <hr/>
+                            </div>
+                        )}
+
+                        {gameReport && gameReport.data.game_graphics_settings && (
+                            <div className="game-report-section">
+                                <PanelSection title="Game Graphics Settings">
+                                    <div className="game-report-section-body">
+                                        <ReactMarkdown rehypePlugins={[rehypeSanitize]}
+                                                       components={markdownComponents}>
+                                            {gameReport.data.game_graphics_settings || ''}
+                                        </ReactMarkdown>
+                                    </div>
+                                </PanelSection>
+                                <hr/>
+                            </div>
+                        )}
+
+                        {gameReport && gameReport.data.additional_notes && (
+                            <div className="game-report-section">
+                                <PanelSection title="Additional Notes">
+                                    <div className="game-report-section-body">
+                                        <ReactMarkdown remarkPlugins={[remarkGfm]}
+                                                       rehypePlugins={[rehypeSanitize]}
+                                                       components={markdownComponents}>
+                                            {gameReport.data.additional_notes || ''}
+                                        </ReactMarkdown>
+                                    </div>
+                                </PanelSection>
+                                <hr/>
+                            </div>
+                        )}
+                    </>
                 </ScrollArea>
             </Scrollable>
         </>
