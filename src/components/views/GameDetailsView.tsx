@@ -231,7 +231,7 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({gameName, appId, onGoB
                                                  alt="Deck Verified Site Logo"
                                                  style={{
                                                      height: "16px",
-                                                     marginTop: "2px"
+                                                     marginTop: "2px",
                                                  }}
                                             />
                                             <span style={{
@@ -256,135 +256,165 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({gameName, appId, onGoB
                                         {filteredReports.length > 0 && (
                                             <>
                                                 {filteredReports.map((gameReport) => (
-                                                    <PanelSectionRow key={`${gameReport.id}`}>
+                                                    <>
                                                         <div style={{
-                                                            padding: '5px',
-                                                            margin: '0px 0px 10px 0px',
-                                                            border: 'thin outset'
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'right',
+                                                            width: '100%',
+                                                            fontSize: '14px',
+                                                            lineHeight: '16px',
+                                                            margin: '0 0 10px 0',
                                                         }}>
-                                                            <ul style={{
-                                                                listStyle: 'none',
-                                                                fontSize: '0.7rem',
+                                                            <img src={gameReport.user.avatar_url}
+                                                                 alt="Deck Verified Site Logo"
+                                                                 style={{
+                                                                     height: '18px',
+                                                                     marginLeft: '3px',
+                                                                     borderRadius: "25%",
+                                                                 }}/>
+                                                            <span style={{
+                                                                padding: '0 0 3px 3px',
                                                                 margin: 0,
-                                                                paddingLeft: '5px',
-                                                                paddingRight: 0,
-                                                                paddingTop: 0,
-                                                                paddingBottom: '3px',
+                                                                color: 'white',
+                                                                fontWeight: 'bold',
+                                                                fontSize: '14px',
+                                                                lineHeight: '16px',
                                                             }}>
-                                                                <li style={{
-                                                                    display: 'table',
-                                                                    textAlign: 'right',
-                                                                    width: '100%',
-                                                                    borderBottom: '1px solid #333',
-                                                                    paddingTop: '2px',
-                                                                    paddingBottom: '2px',
-                                                                }}>
-                                                                    <strong style={{
-                                                                        display: 'table-cell',
-                                                                        textAlign: 'left',
-                                                                        paddingRight: '3px',
-                                                                    }}>{gameReport.data.summary}</strong>
-                                                                </li>
-                                                                <li style={{
-                                                                    display: 'table',
-                                                                    textAlign: 'right',
-                                                                    width: '100%',
-                                                                    borderBottom: '1px solid #333',
-                                                                    paddingTop: '2px',
-                                                                    paddingBottom: '2px',
-                                                                }}>
-                                                                    <strong style={{
-                                                                        display: 'table-cell',
-                                                                        textAlign: 'left',
-                                                                        paddingRight: '3px',
-                                                                    }}>Device:</strong>
-                                                                    {gameReport.data.device}
-                                                                </li>
-                                                                {gameReport.data.target_framerate && (
-                                                                    <li style={{
-                                                                        display: 'table',
-                                                                        textAlign: 'right',
-                                                                        width: '100%',
-                                                                        borderBottom: '1px solid #333',
-                                                                        paddingTop: '2px',
-                                                                        paddingBottom: '2px',
-                                                                    }}>
-                                                                        <strong style={{
-                                                                            display: 'table-cell',
-                                                                            textAlign: 'left',
-                                                                            paddingRight: '3px',
-                                                                        }}>Target Framerate:</strong>
-                                                                        {gameReport.data.target_framerate}
-                                                                    </li>
-                                                                )}
-                                                                {gameReport.data.calculated_battery_life_minutes && (
-                                                                    <li style={{
-                                                                        display: 'table',
-                                                                        textAlign: 'right',
-                                                                        width: '100%',
-                                                                        borderBottom: '1px solid #333',
-                                                                        paddingTop: '2px',
-                                                                        paddingBottom: '2px',
-                                                                    }}>
-                                                                        <strong style={{
-                                                                            display: 'table-cell',
-                                                                            textAlign: 'left',
-                                                                            paddingRight: '3px',
-                                                                        }}>Estimated Battery Life:</strong>
-                                                                        {formatMinutes(gameReport.data.calculated_battery_life_minutes)}
-                                                                    </li>
-                                                                )}
-                                                                {hasYoutubeLink(gameReport.data.additional_notes) && (
-                                                                    <li style={{
-                                                                        display: 'table',
-                                                                        textAlign: 'right',
-                                                                        width: '100%',
-                                                                        borderBottom: '1px solid #333',
-                                                                        paddingTop: '2px',
-                                                                        paddingBottom: '2px',
-                                                                    }}>
-
-                                                                        <strong style={{
-                                                                            display: 'table-cell',
-                                                                            verticalAlign: 'middle',
-                                                                            textAlign: 'left',
-                                                                            paddingRight: '3px',
-                                                                        }}>
-                                                                            <TbBrandYoutubeFilled
-                                                                                style={{
-                                                                                    display: 'table-cell',
-                                                                                    verticalAlign: 'middle',
-                                                                                    height: '100%',
-                                                                                    paddingRight: '10px',
-                                                                                    paddingLeft: '5px'
-                                                                                }}
-                                                                                fill="#FF0000"
-                                                                            />
-                                                                        </strong>
-                                                                        Includes YouTube Video
-                                                                    </li>
-                                                                )}
-                                                            </ul>
-                                                            <div style={{
-                                                                margin: 0,
-                                                                paddingLeft: '5px',
-                                                                paddingRight: '5px',
-                                                                paddingTop: 0,
-                                                                paddingBottom: 0,
-                                                                overflow: 'hidden'
-                                                            }}>
-                                                                <ButtonItem
-                                                                    bottomSeparator="none"
-                                                                    layout="below"
-                                                                    key={gameReport.id}
-                                                                    onClick={() => handleReportSelect(gameReport)}
-                                                                >
-                                                                    View Report
-                                                                </ButtonItem>
-                                                            </div>
+                                                                {gameReport.user.login}
+                                                            </span>
                                                         </div>
 
-                                                    </PanelSectionRow>
+                                                        <PanelSectionRow key={`${gameReport.id}`}>
+                                                            <div style={{
+                                                                padding: '5px',
+                                                                margin: '0px 0px 10px 0px',
+                                                                border: 'thin outset'
+                                                            }}>
+                                                                <ul style={{
+                                                                    listStyle: 'none',
+                                                                    fontSize: '0.7rem',
+                                                                    margin: 0,
+                                                                    paddingLeft: '5px',
+                                                                    paddingRight: 0,
+                                                                    paddingTop: 0,
+                                                                    paddingBottom: '3px',
+                                                                }}>
+                                                                    <li style={{
+                                                                        display: 'table',
+                                                                        textAlign: 'right',
+                                                                        width: '100%',
+                                                                        borderBottom: '1px solid #333',
+                                                                        paddingTop: '2px',
+                                                                        paddingBottom: '2px',
+                                                                    }}>
+                                                                        <strong style={{
+                                                                            display: 'table-cell',
+                                                                            textAlign: 'left',
+                                                                            paddingRight: '3px',
+                                                                        }}>{gameReport.data.summary}</strong>
+                                                                    </li>
+                                                                    <li style={{
+                                                                        display: 'table',
+                                                                        textAlign: 'right',
+                                                                        width: '100%',
+                                                                        borderBottom: '1px solid #333',
+                                                                        paddingTop: '2px',
+                                                                        paddingBottom: '2px',
+                                                                    }}>
+                                                                        <strong style={{
+                                                                            display: 'table-cell',
+                                                                            textAlign: 'left',
+                                                                            paddingRight: '3px',
+                                                                        }}>Device:</strong>
+                                                                        {gameReport.data.device}
+                                                                    </li>
+                                                                    {gameReport.data.target_framerate && (
+                                                                        <li style={{
+                                                                            display: 'table',
+                                                                            textAlign: 'right',
+                                                                            width: '100%',
+                                                                            borderBottom: '1px solid #333',
+                                                                            paddingTop: '2px',
+                                                                            paddingBottom: '2px',
+                                                                        }}>
+                                                                            <strong style={{
+                                                                                display: 'table-cell',
+                                                                                textAlign: 'left',
+                                                                                paddingRight: '3px',
+                                                                            }}>Target Framerate:</strong>
+                                                                            {gameReport.data.target_framerate}
+                                                                        </li>
+                                                                    )}
+                                                                    {gameReport.data.calculated_battery_life_minutes && (
+                                                                        <li style={{
+                                                                            display: 'table',
+                                                                            textAlign: 'right',
+                                                                            width: '100%',
+                                                                            borderBottom: '1px solid #333',
+                                                                            paddingTop: '2px',
+                                                                            paddingBottom: '2px',
+                                                                        }}>
+                                                                            <strong style={{
+                                                                                display: 'table-cell',
+                                                                                textAlign: 'left',
+                                                                                paddingRight: '3px',
+                                                                            }}>Estimated Battery Life:</strong>
+                                                                            {formatMinutes(gameReport.data.calculated_battery_life_minutes)}
+                                                                        </li>
+                                                                    )}
+                                                                    {hasYoutubeLink(gameReport.data.additional_notes) && (
+                                                                        <li style={{
+                                                                            display: 'table',
+                                                                            textAlign: 'right',
+                                                                            width: '100%',
+                                                                            borderBottom: '1px solid #333',
+                                                                            paddingTop: '2px',
+                                                                            paddingBottom: '2px',
+                                                                        }}>
+
+                                                                            <strong style={{
+                                                                                display: 'table-cell',
+                                                                                verticalAlign: 'middle',
+                                                                                textAlign: 'left',
+                                                                                paddingRight: '3px',
+                                                                            }}>
+                                                                                <TbBrandYoutubeFilled
+                                                                                    style={{
+                                                                                        display: 'table-cell',
+                                                                                        verticalAlign: 'middle',
+                                                                                        height: '100%',
+                                                                                        paddingRight: '10px',
+                                                                                        paddingLeft: '5px'
+                                                                                    }}
+                                                                                    fill="#FF0000"
+                                                                                />
+                                                                            </strong>
+                                                                            Includes YouTube Video
+                                                                        </li>
+                                                                    )}
+                                                                </ul>
+                                                                <div style={{
+                                                                    margin: 0,
+                                                                    paddingLeft: '5px',
+                                                                    paddingRight: '5px',
+                                                                    paddingTop: 0,
+                                                                    paddingBottom: 0,
+                                                                    overflow: 'hidden'
+                                                                }}>
+                                                                    <ButtonItem
+                                                                        bottomSeparator="none"
+                                                                        layout="below"
+                                                                        key={gameReport.id}
+                                                                        onClick={() => handleReportSelect(gameReport)}
+                                                                    >
+                                                                        View Report
+                                                                    </ButtonItem>
+                                                                </div>
+                                                            </div>
+
+                                                        </PanelSectionRow>
+                                                    </>
                                                 ))}
                                             </>
                                         )}
@@ -449,7 +479,7 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({gameName, appId, onGoB
                                         {externalReviews.length > 0 && (
                                             <>
                                                 {externalReviews.map((review) => (
-                                                    <div>
+                                                    <>
                                                         <div style={{
                                                             display: 'flex',
                                                             alignItems: 'center',
@@ -464,8 +494,7 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({gameName, appId, onGoB
                                                                  style={{
                                                                      height: '18px',
                                                                      marginLeft: '3px'
-                                                                 }}
-                                                            />
+                                                                 }}/>
                                                             <span style={{
                                                                 padding: '0 0 3px 3px',
                                                                 margin: 0,
@@ -474,8 +503,8 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({gameName, appId, onGoB
                                                                 fontSize: '14px',
                                                                 lineHeight: '16px',
                                                             }}>
-                                                        {review.source.name}
-                                                    </span>
+                                                                {review.source.name}
+                                                            </span>
                                                         </div>
 
                                                         <PanelSectionRow key={`${review.id}`}>
@@ -607,7 +636,7 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({gameName, appId, onGoB
                                                             </div>
 
                                                         </PanelSectionRow>
-                                                    </div>
+                                                    </>
                                                 ))}
                                             </>
                                         )}
