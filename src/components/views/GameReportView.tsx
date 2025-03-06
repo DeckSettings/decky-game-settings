@@ -277,16 +277,14 @@ const GameReportView: React.FC<GameReportViewProps> = ({gameReport, onGoBack}) =
                                             fontSize: '14px',
                                             lineHeight: '16px',
                                         }}>
-                            {gameReport.source.name}
-                          </span>
+                                            {gameReport.source.name}
+                                        </span>
                                     </>
                                 ) : (
                                     <>
-                                        <img
-                                            src={gameReport.user.avatar_url}
-                                            alt="User Avatar"
-                                            style={{height: '18px', marginLeft: '3px'}}
-                                        />
+                                        <img src={gameReport.user.avatar_url}
+                                             alt="User Avatar"
+                                             style={{height: '18px', marginLeft: '3px'}}/>
                                         <span style={{
                                             padding: '0 0 3px 3px',
                                             margin: 0,
@@ -295,8 +293,8 @@ const GameReportView: React.FC<GameReportViewProps> = ({gameReport, onGoBack}) =
                                             fontSize: '14px',
                                             lineHeight: '16px',
                                         }}>
-                            {gameReport.user.login}
-                          </span>
+                                            {gameReport.user.login}
+                                        </span>
                                     </>
                                 )}
                             </div>
@@ -320,41 +318,45 @@ const GameReportView: React.FC<GameReportViewProps> = ({gameReport, onGoBack}) =
                             </div>
                         )}
 
-                        <div className="game-report-section">
-                            <PanelSection title="System Configuration">
-                                <div className="game-report-section-body">
-                                    <ul>
-                                        {systemConfigurationData.map(([key, value]) => (
-                                            <li key={key}>
-                                                <strong>
-                                                    {key}
-                                                </strong>
-                                                {value}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            </PanelSection>
-                            <hr/>
-                        </div>
+                        {systemConfigurationData && systemConfigurationData.length > 0 && (
+                            <div className="game-report-section">
+                                <PanelSection title="System Configuration">
+                                    <div className="game-report-section-body">
+                                        <ul>
+                                            {systemConfigurationData.map(([key, value]) => (
+                                                <li key={key}>
+                                                    <strong>
+                                                        {key}
+                                                    </strong>
+                                                    {value}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                </PanelSection>
+                                <hr/>
+                            </div>
+                        )}
 
-                        <div className="game-report-section">
-                            <PanelSection title="Performance Settings">
-                                <div className="game-report-section-body">
-                                    <ul>
-                                        {performanceSettingsData.map(([key, value]) => (
-                                            <li key={key}>
-                                                <strong>
-                                                    {key}
-                                                </strong>
-                                                {value}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            </PanelSection>
-                            <hr/>
-                        </div>
+                        {performanceSettingsData && performanceSettingsData.length > 0 && (
+                            <div className="game-report-section">
+                                <PanelSection title="Performance Settings">
+                                    <div className="game-report-section-body">
+                                        <ul>
+                                            {performanceSettingsData.map(([key, value]) => (
+                                                <li key={key}>
+                                                    <strong>
+                                                        {key}
+                                                    </strong>
+                                                    {value}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                </PanelSection>
+                                <hr/>
+                            </div>
+                        )}
 
                         {gameReport && gameReport.data.game_display_settings && (
                             <div className="game-report-section">
