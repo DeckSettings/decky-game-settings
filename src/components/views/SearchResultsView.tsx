@@ -3,7 +3,7 @@ import {
     PanelSectionRow,
     ButtonItem,
     Spinner,
-    DialogButton, Focusable, TextField, showModal,
+    DialogButton, Focusable, TextField, showModal, staticClasses,
 } from "@decky/ui";
 import {useState, useEffect} from "react";
 import {MdArrowBack} from "react-icons/md";
@@ -67,17 +67,47 @@ const SearchResultsView: React.FC<SearchResultsViewProps> = ({query, onGameSelec
                 </PanelSection>
                 <hr/>
             </div>
-            <PanelSection title={`Search Results for "${query}"`}>
+            <PanelSection>
                 {isLoading ? (
-                    <Spinner/>
+                    <>
+                        <div>
+                            <span className={staticClasses.PanelSectionTitle}
+                                  style={{
+                                      color: 'white',
+                                      fontSize: '22px',
+                                      fontWeight: 'bold',
+                                      lineHeight: '28px',
+                                      textTransform: 'none',
+                                      marginBottom: '0px',
+                                  }}>
+                                {`Searching...`}
+                            </span> "{query}"
+                        </div>
+                        <Spinner height="40px"/>
+                    </>
                 ) : searchResults.length > 0 ? (
-                    searchResults.map((game, index) => (
-                        <PanelSectionRow key={index}>
-                            <ButtonItem layout="below" onClick={() => onGameSelect(game)}>
-                                {game.title}
-                            </ButtonItem>
-                        </PanelSectionRow>
-                    ))
+                    <>
+                        <div>
+                            <span className={staticClasses.PanelSectionTitle}
+                                  style={{
+                                      color: 'white',
+                                      fontSize: '22px',
+                                      fontWeight: 'bold',
+                                      lineHeight: '28px',
+                                      textTransform: 'none',
+                                      marginBottom: '0px',
+                                  }}>
+                                Search Results:
+                            </span>
+                        </div>
+                        {searchResults.map((game, index) => (
+                            <PanelSectionRow key={index}>
+                                <ButtonItem layout="below" onClick={() => onGameSelect(game)}>
+                                    {game.title}
+                                </ButtonItem>
+                            </PanelSectionRow>
+                        ))}
+                    </>
                 ) : (
                     <div>No results found</div>
                 )}
