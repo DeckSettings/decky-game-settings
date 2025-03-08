@@ -1,12 +1,12 @@
 import React, {useEffect, useState} from 'react';
 import {PanelSection, Focusable, DialogButton, Navigation, Router} from "@decky/ui";
 import ReactMarkdown, {Components} from 'react-markdown';
-import {Scrollable, scrollableRef, ScrollArea} from "../elements/Scrollable";
 import {reportsWebsiteBaseUrl} from "../../constants";
 import type {ExternalReview, GameReport} from "../../interfaces";
 import {MdArrowBack, MdWeb} from "react-icons/md";
 import remarkGfm from "remark-gfm";
 import rehypeSanitize from "rehype-sanitize";
+import { ScrollableWindowRelative } from '../ScrollableWindow';
 
 // Type guard to distinguish ExternalReview from GameReport.
 export const isExternalReview = (report: GameReport | ExternalReview): report is ExternalReview => {
@@ -131,7 +131,6 @@ const GameReportView: React.FC<GameReportViewProps> = ({gameReport, onGoBack}) =
         })
         .filter(entry => entry !== null) as [string, string][];
 
-    const ref = scrollableRef();
 
     const openWeb = (url: string) => {
         Navigation.NavigateToExternalWeb(url);
@@ -251,8 +250,16 @@ const GameReportView: React.FC<GameReportViewProps> = ({gameReport, onGoBack}) =
             </div>
 
 
-            <Scrollable ref={ref} className="game-report">
-                <ScrollArea scrollable={ref}>
+            <Focusable
+                style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: '-webkit-fill-available',
+                    width: '-webkit-fill-available',
+                    position: 'absolute'
+                }}
+            >
+                <ScrollableWindowRelative>
                     <>
                         {gameReport && (
                             <div className="game-report"
@@ -401,8 +408,9 @@ const GameReportView: React.FC<GameReportViewProps> = ({gameReport, onGoBack}) =
                             </div>
                         )}
                     </>
-                </ScrollArea>
-            </Scrollable>
+                </ScrollableWindowRelative>
+                <div style={{ height: '32px'}}/>{/*  provide space for bottom banner */}
+            </Focusable>
         </>
     );
 };
