@@ -1,7 +1,4 @@
-import {
-    staticClasses
-} from "@decky/ui";
-import {
+ import {
     definePlugin,
 } from "@decky/api"
 import {MdTune} from "react-icons/md";

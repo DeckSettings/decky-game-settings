@@ -53,7 +53,7 @@ const GameSelectView: React.FC<GameSelectViewProps> = ({onGameSelect, onSearch, 
     return (
         <>
             <div>
-                <div style={{padding: '16px 16px 3px 16px', margin: 0}}>
+                <div style={{padding: '3px 16px 3px 16px', margin: 0}}>
                     <Focusable style={{display: 'flex', alignItems: 'stretch', gap: '1rem'}}
                                flow-children="horizontal">
                         <DialogButton

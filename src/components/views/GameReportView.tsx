@@ -3,10 +3,10 @@ import {PanelSection, Focusable, DialogButton, Navigation, Router} from "@decky/
 import ReactMarkdown, {Components} from 'react-markdown';
 import {reportsWebsiteBaseUrl} from "../../constants";
 import type {ExternalReview, GameReport} from "../../interfaces";
+import {ScrollableWindowRelative} from '../elements/ScrollableWindow';
 import {MdArrowBack, MdWeb} from "react-icons/md";
 import remarkGfm from "remark-gfm";
 import rehypeSanitize from "rehype-sanitize";
-import { ScrollableWindowRelative } from '../ScrollableWindow';
 
 // Type guard to distinguish ExternalReview from GameReport.
 export const isExternalReview = (report: GameReport | ExternalReview): report is ExternalReview => {
@@ -199,7 +199,7 @@ const GameReportView: React.FC<GameReportViewProps> = ({gameReport, onGoBack}) =
             }
             `}</style>
             <div>
-                <div style={{padding: '16px 16px 3px 16px', margin: 0}}>
+                <div style={{padding: '3px 16px 3px 16px', margin: 0}}>
                     <Focusable style={{display: 'flex', alignItems: 'stretch', gap: '1rem'}} flow-children="horizontal">
                         <DialogButton
                             // @ts-ignore
@@ -409,7 +409,8 @@ const GameReportView: React.FC<GameReportViewProps> = ({gameReport, onGoBack}) =
                         )}
                     </>
                 </ScrollableWindowRelative>
-                <div style={{ height: '32px'}}/>{/*  provide space for bottom banner */}
+                <div style={{height: '32px'}}/>
+                {/*  provide space for bottom banner */}
             </Focusable>
         </>
     );
