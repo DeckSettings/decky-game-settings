@@ -1,4 +1,4 @@
-import {Router} from "decky-frontend-lib";
+import {Router} from "@decky/ui"
 import {ignoreListAppRegex, ignoreListCompatibilityTools} from "../constants";
 import type {GameInfo} from "../interfaces";
 
@@ -12,7 +12,10 @@ export const getGamesList = async () => {
 
     installFolders.forEach((folder) => {
         folder.vecApps.forEach((app) => {
-            if (!ignoreListCompatibilityTools.includes(app.nAppID) && !ignoreListAppRegex.some(regex => regex.test(app.strAppName))) {
+            if (
+                !ignoreListCompatibilityTools.includes(app.nAppID) &&
+                !ignoreListAppRegex.some(regex => regex.test(app.strAppName))
+            ) {
                 if (
                     !runningGame &&
                     currentRunningGame?.appid == app.nAppID.toString()
@@ -48,7 +51,16 @@ export const getGamesList = async () => {
             nonInstalledGames.push(gameInfo);
         }
     });
-    nonInstalledGames.sort((a, b) => (a.sortAs > b.sortAs ? 1 : -1))
+    nonInstalledGames.sort((a, b) => (a.sortAs > b.sortAs ? 1 : -1));
+
+    // If runningGame was not set, but currentRunningGame has a display_name, set the runningGame title.
+    // Here, we cannot trust the appId is the real game appId. So leave it off.
+    // The API will handle things via just game name if it is correct and without typos.
+    if (!runningGame && currentRunningGame && currentRunningGame.display_name.trim() !== "") {
+        runningGame = {
+            title: currentRunningGame.display_name,
+        };
+    }
 
     return {runningGame, installedGames, nonInstalledGames};
 }

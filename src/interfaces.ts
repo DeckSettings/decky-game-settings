@@ -12,7 +12,7 @@ export interface Devices {
 
 export interface GameInfo {
     title: string;
-    appId: number;
+    appId?: number;
     sortAs?: string;
 }
 
