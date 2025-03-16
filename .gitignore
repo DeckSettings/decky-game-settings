@@ -25,7 +25,6 @@ bower_components
 .pnpm-store
 
 # Editors
-.idea
 *.iml
 
 # OS metadata
