@@ -1,6 +1,5 @@
 import {
   Focusable,
-  ModalPosition,
   GamepadButton,
   ScrollPanelGroup,
   gamepadDialogClasses,
@@ -57,10 +56,10 @@ export const ScrollableWindow: FC<ScrollableWindowProps> = ({
         key={'scrollable-window-focusable-element'}
         noFocusRing={true}
         actionDescriptionMap={Object.assign(noScrollDescription ? {} :
-            {
-              [GamepadButton.DIR_UP]: 'Scroll Up',
-              [GamepadButton.DIR_DOWN]: 'Scroll Down',
-            },
+          {
+            [GamepadButton.DIR_UP]: 'Scroll Up',
+            [GamepadButton.DIR_DOWN]: 'Scroll Down',
+          },
           actionDescriptionMap ?? {},
         )}
         {...focusableProps}
@@ -97,17 +96,11 @@ export const ScrollableWindow: FC<ScrollableWindowProps> = ({
           height: height,
           WebkitMask: `linear-gradient(to right , transparent, transparent calc(100% - ${barWidth}), white calc(100% - ${barWidth})), linear-gradient(to bottom, transparent, black ${fade}, black calc(100% - ${fade}), transparent 100%)`,
         }}>
-        {isOverflowing ? (
-          <ModalPosition key={'scrollable-window-modal-position'}>
-            {panel}
-          </ModalPosition>
-        ) : (
-          <div
-            className={`${gamepadDialogClasses.ModalPosition} ${gamepadDialogClasses.WithStandardPadding} Panel`}
-            key={'modal-position'}>
-            {panel}
-          </div>
-        )}
+        <div
+          className={`${gamepadDialogClasses.ModalPosition} ${gamepadDialogClasses.WithStandardPadding} Panel`}
+          key={'modal-position'}>
+          {panel}
+        </div>
       </div>
     </>
   )
