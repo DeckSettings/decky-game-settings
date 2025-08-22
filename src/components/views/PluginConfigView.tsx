@@ -13,6 +13,13 @@ import { getPluginConfig, setPluginConfig } from '../../constants'
 import { fetchDeviceList } from '../../hooks/deckVerifiedApi'
 import { PanelSocialButton } from '../elements/SocialButton'
 import { SiDiscord, SiGithub, SiKofi, SiPatreon } from 'react-icons/si'
+import { popupLoginDialog } from '../elements/LoginDialog'
+import {
+  hasToken as hasGithubToken,
+  clearTokens as clearGithubTokens,
+  GithubUserProfile,
+  loadUserProfile, clearUserProfile,
+} from '../../hooks/githubAuth'
 
 interface PluginConfigViewProps {
   onGoBack: () => void;
@@ -22,6 +29,8 @@ const PluginConfigView: React.FC<PluginConfigViewProps> = ({ onGoBack }) => {
   const [isLoading, setIsLoading] = useState(false)
   const [currentConfig, setCurrentConfig] = useState(() => getPluginConfig())
   const [deviceList, setDeviceList] = useState<Devices[]>([])
+  const [hasGithub, setHasGithub] = useState<boolean>(hasGithubToken())
+  const [ghProfile, setGhProfile] = useState<GithubUserProfile | null>(loadUserProfile())
 
 
   const updateDeviceList = async () => {
@@ -44,6 +53,20 @@ const PluginConfigView: React.FC<PluginConfigViewProps> = ({ onGoBack }) => {
       ...prevConfig,
       ...updates,
     }))
+  }
+
+  const openGithubLogin = () => {
+    popupLoginDialog(() => {
+      setHasGithub(hasGithubToken())
+      setGhProfile(loadUserProfile())
+    })
+  }
+
+  const logoutGithub = () => {
+    clearGithubTokens()
+    clearUserProfile()
+    setHasGithub(false)
+    setGhProfile(null)
   }
 
   const handleDeviceSelection = (deviceName: string) => {
@@ -85,6 +108,30 @@ const PluginConfigView: React.FC<PluginConfigViewProps> = ({ onGoBack }) => {
         <hr />
       </div>
       <PanelSection title="Plugin Configuration">
+        <PanelSection title="GitHub Account">
+          <PanelSectionRow>
+            {hasGithub ? (
+              <DialogButton onClick={logoutGithub}>
+                {ghProfile?.avatar_url ? (
+                  <img
+                    src={ghProfile.avatar_url}
+                    alt={ghProfile.login}
+                    style={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: '50%',
+                      marginRight: 8,
+                      verticalAlign: 'middle',
+                    }}
+                  />
+                ) : null}
+                Logout @{ghProfile?.login || 'GitHub'}
+              </DialogButton>
+            ) : (
+              <DialogButton onClick={openGithubLogin}>Connect GitHub</DialogButton>
+            )}
+          </PanelSectionRow>
+        </PanelSection>
       </PanelSection>
       {isLoading ? (
         <PanelSection spinner title="Fetching list of devices with configuration options..." />

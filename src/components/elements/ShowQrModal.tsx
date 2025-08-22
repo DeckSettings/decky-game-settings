@@ -7,7 +7,7 @@ export const showQrModal = (url: string) => {
       <QRCodeSVG
         style={{ margin: '0 auto 1.5em auto' }}
         value={url}
-        includeMargin
+        marginSize={4}
         size={256}
       />
       <span style={{ textAlign: 'center', wordBreak: 'break-word' }}>{url}</span>
