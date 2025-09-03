@@ -20,6 +20,7 @@ import {
   GithubUserProfile,
   loadUserProfile, clearUserProfile,
 } from '../../hooks/githubAuth'
+import { getCurrentRunningGameConfig } from '../../hooks/runtimeInfo'
 
 interface PluginConfigViewProps {
   onGoBack: () => void;
@@ -43,6 +44,10 @@ const PluginConfigView: React.FC<PluginConfigViewProps> = ({ onGoBack }) => {
     } finally {
       setIsLoading(false)
     }
+
+    // TODO: Remove this after development
+    const gameData = await getCurrentRunningGameConfig()
+    console.log(gameData)
   }
 
   const updateConfig = (updates: Partial<PluginConfig>) => {
