@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { DialogButton, Focusable, PanelSection, PanelSectionRow, showModal } from '@decky/ui'
+import { DialogButton, Focusable, PanelSection, PanelSectionRow, ToggleField, showModal } from '@decky/ui'
 import { MdArrowBack } from 'react-icons/md'
 import { getGamesList } from '../../hooks/gameLibrary'
 import type { ReportDraft } from '../../interfaces'
@@ -313,43 +313,71 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
                       </PanelSectionRow>
                     </div>,
                   )
-                } else if (item.type === 'dropdown') {
+                  return
+                }
+
+                if (item.type === 'dropdown') {
                   const label = item?.attributes?.label || item.id
                   const required = !!item?.validations?.required
                   const options: string[] = item?.attributes?.options || []
                   const value = values[item.id]
                   const selected = value ? options.findIndex((x) => x === value) : (typeof item?.attributes?.default === 'number' ? item.attributes.default : -1)
                   const err = errors[item.id]
-                  elements.push(
-                    <div style={{ padding: "3px 0" }}>
-                      <PanelSectionRow key={`row-${item.id}-${idx}`}>
-                        <div style={{ ...centeredRowStyle, padding: 0, display: 'block' }}>
-                          <div style={{ fontWeight: 600, fontSize: '13px', padding: '6px 6px 2px 0' }}>
-                            {label} {required ? <span style={{ color: 'orangered' }}>*</span> : null}
+
+                  // Render pure On/Off dropdowns as a ToggleField. Everything else is a SelectModal
+                  const isOnOffDropdown = options.length === 2 && new Set(options.map(o => String(o).toLowerCase())).size === 2 && options.map(o => String(o).toLowerCase()).every(o => o === 'on' || o === 'off')
+                  if (isOnOffDropdown) {
+                    const defaultIndex = (typeof item?.attributes?.default === 'number' ? item.attributes.default : 0)
+                    const currentValue = (typeof value === 'string' && value.length > 0)
+                      ? value
+                      : (options[defaultIndex] ?? options[0] ?? 'Off')
+                    const checked = String(currentValue).toLowerCase() === 'on'
+                    elements.push(
+                      <div style={{ padding: "3px 0" }}>
+                        <PanelSectionRow key={`row-${item.id}-${idx}`}>
+                          <ToggleField
+                            checked={checked}
+                            label={label}
+                            description={item?.attributes?.description}
+                            onChange={(val: boolean) => setField(item, val ? 'On' : 'Off')}
+                          />
+                        </PanelSectionRow>
+                        {err ? <div style={{ fontSize: '10px', color: 'orangered', marginTop: '2px' }}>{err}</div> : null}
+                      </div>,
+                    )
+                    return
+                  } else {
+                    elements.push(
+                      <div style={{ padding: "3px 0" }}>
+                        <PanelSectionRow key={`row-${item.id}-${idx}`}>
+                          <div style={{ ...centeredRowStyle, padding: 0, display: 'block' }}>
+                            <div style={{ fontWeight: 600, fontSize: '13px', padding: '6px 6px 2px 0' }}>
+                              {label} {required ? <span style={{ color: 'orangered' }}>*</span> : null}
+                            </div>
+                            <DialogButton
+                              style={{ ...centeredRowStyle, padding: '4px', display: 'flex' }}
+                              onClick={() =>
+                                showModal(
+                                  <SelectModal
+                                    label={label}
+                                    options={options}
+                                    selectedIndex={selected}
+                                    onClosed={(val) => setField(item, val)}
+                                  />,
+                                )
+                              }
+                            >
+                              <div style={{ fontSize: '11px', opacity: 0.8 }}>{value || 'Select option'}</div>
+                            </DialogButton>
+                            {err ? <div style={{ fontSize: '10px', color: 'orangered', marginTop: '2px' }}>{err}</div> : null}
+                            {item?.attributes?.description ? (
+                              <div style={{ fontSize: '11px', opacity: 0.8, marginTop: '2px' }}>{item.attributes.description}</div>
+                            ) : null}
                           </div>
-                          <DialogButton
-                            style={{ ...centeredRowStyle, padding: '4px', display: 'flex' }}
-                            onClick={() =>
-                              showModal(
-                                <SelectModal
-                                  label={label}
-                                  options={options}
-                                  selectedIndex={selected}
-                                  onClosed={(val) => setField(item, val)}
-                                />,
-                              )
-                            }
-                          >
-                            <div style={{ fontSize: '11px', opacity: 0.8 }}>{value || 'Select option'}</div>
-                          </DialogButton>
-                          {err ? <div style={{ fontSize: '10px', color: 'orangered', marginTop: '2px' }}>{err}</div> : null}
-                          {item?.attributes?.description ? (
-                            <div style={{ fontSize: '11px', opacity: 0.8, marginTop: '2px' }}>{item.attributes.description}</div>
-                          ) : null}
-                        </div>
-                      </PanelSectionRow>
-                    </div>,
-                  )
+                        </PanelSectionRow>
+                      </div>,
+                    )
+                  }
                 }
               })
               return elements
