@@ -2,9 +2,10 @@ export interface PluginConfig {
   installationId?: string;
   filterDevices: string[];
   showAllApps: boolean;
+  reportDraft?: ReportDraft;
 }
 
-export type PluginPage = 'game_select' | 'search_results' | 'game_data' | 'plugin_config';
+export type PluginPage = 'game_select' | 'search_results' | 'game_data' | 'plugin_config' | 'report_form';
 
 export interface Devices {
   name: string;
@@ -94,6 +95,10 @@ export interface GameReportData {
   game_graphics_settings: string;
   additional_notes: string;
 }
+
+export type ReportDraft = Record<string, any> & {
+  images?: string[];
+};
 
 export interface GitHubUser {
   login: string;

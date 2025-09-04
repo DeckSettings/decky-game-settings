@@ -88,6 +88,7 @@ const GameSelectView: React.FC<GameSelectViewProps> = ({ onGameSelect, onSearch,
                 <TextFieldModal
                   label="Search"
                   placeholder="Game name or appid"
+                  applyLabel="Search"
                   onClosed={onSearch}
                 />,
               )}>

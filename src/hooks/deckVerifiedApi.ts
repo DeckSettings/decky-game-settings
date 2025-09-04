@@ -76,3 +76,64 @@ export const fetchDeviceList = async (): Promise<Devices[]> => {
 
   return devices
 }
+
+const reportFormSchemaKey = `${__PLUGIN_NAME__}:reportFormSchema`
+export const fetchReportFormDefinition = async (): Promise<any | null> => {
+  const oneHourMs = 60 * 60 * 1000
+  try {
+    const cached = window.localStorage.getItem(reportFormSchemaKey)
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached)
+        if (parsed && parsed.ts && (Date.now() - parsed.ts) < oneHourMs) {
+          return parsed.data
+        }
+      } catch (e) {
+        // ignore cache parse error
+      }
+    }
+
+    const url = `${reportsApiBaseUrl}/report_form`
+    const res = await fetchNoCors(url, {
+      method: 'GET',
+    })
+    if (!res.ok) {
+      console.error(`Failed to fetch report form: ${res.status} ${res.statusText}`)
+      return null
+    }
+    const data = await res.json()
+    try {
+      window.localStorage.setItem(reportFormSchemaKey, JSON.stringify({ ts: Date.now(), data }))
+    } catch (e) {
+      // ignore cache write errors
+    }
+    return data
+  } catch (err) {
+    console.error('fetchReportFormDefinition error', err)
+    return null
+  }
+}
+
+// Local storage for per-game report form states
+export const reportFormStatesKey = `${__PLUGIN_NAME__}:reportFormStates`
+
+export const loadReportFormStates = (): Record<string, any> => {
+  try {
+    const raw = window.localStorage.getItem(reportFormStatesKey)
+    if (!raw) return {}
+    const obj = JSON.parse(raw)
+    return (obj && typeof obj === 'object') ? obj : {}
+  } catch {
+    return {}
+  }
+}
+
+export const saveReportFormState = (key: string, state: Record<string, any>): void => {
+  try {
+    const all = loadReportFormStates()
+    all[key] = state
+    window.localStorage.setItem(reportFormStatesKey, JSON.stringify(all))
+  } catch (e) {
+    console.error('Failed to save report form state', e)
+  }
+}

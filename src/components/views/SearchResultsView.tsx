@@ -77,6 +77,8 @@ const SearchResultsView: React.FC<SearchResultsViewProps> = ({ query, onGameSele
                 <TextFieldModal
                   label="Search"
                   placeholder="Game name or appid"
+                  applyLabel="Search"
+                  initialValue={query}
                   onClosed={onSearch}
                 />,
               )}>

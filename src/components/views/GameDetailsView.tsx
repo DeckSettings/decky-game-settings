@@ -10,11 +10,11 @@ import {
 } from '@decky/ui'
 import GameReportView from './GameReportView'
 import { formatMinutes, hasYoutubeLink, reportsWebsiteBaseUrl } from '../../constants'
-import type { ExternalReview, GameMetadata, GameReport } from '../../interfaces'
+import type { ExternalReview, GameMetadata, GameReport, PluginPage } from '../../interfaces'
 import { MdArrowBack, MdWeb } from 'react-icons/md'
 import { fetchGameDataByAppId, fetchGameDataByGameName } from '../../hooks/deckVerifiedApi'
 import { getPluginConfig } from '../../constants'
-import { PanelSocialButton } from '../elements/SocialButton'
+// import { PanelSocialButton } from '../elements/SocialButton'
 import { TbBrandYoutubeFilled, TbReport } from 'react-icons/tb'
 
 const deckVerifiedIconSrc = 'https://deckverified.games/deck-verified/assets/logo-dark-DRV01ZBg.png'
@@ -23,9 +23,10 @@ export interface GameDetailsViewProps {
   gameName: string;
   appId?: number;
   onGoBack: () => void;
+  onChangePage: (page: PluginPage) => void;
 }
 
-const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGoBack }) => {
+const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGoBack, onChangePage }) => {
   const [isLoading, setIsLoading] = useState(false)
   const [configFilterDevices, setConfigFilterDevices] = useState<boolean>(false)
   const [filteredReports, setFilteredReports] = useState<GameReport[]>([])
@@ -106,7 +107,7 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
           <div>
             <div style={{ padding: '3px 16px 3px 16px', margin: 0 }}>
               <Focusable style={{ display: 'flex', alignItems: 'stretch', gap: '1rem' }}
-                         flow-children="horizontal">
+                flow-children="horizontal">
                 <DialogButton
                   // @ts-ignore
                   autoFocus={true}
@@ -228,11 +229,11 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
                       margin: '0px 0px 10px 0px',
                     }}>
                       <img src={deckVerifiedIconSrc}
-                           alt="Deck Verified Site Logo"
-                           style={{
-                             height: '16px',
-                             marginTop: '2px',
-                           }}
+                        alt="Deck Verified Site Logo"
+                        style={{
+                          height: '16px',
+                          marginTop: '2px',
+                        }}
                       />
                       <span style={{
                         color: 'white',
@@ -242,8 +243,8 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
                         textTransform: 'none',
                         marginLeft: '6px',
                       }}>
-                                            Reports:
-                                        </span>
+                        Reports:
+                      </span>
                     </div>
                   </div>
 
@@ -267,12 +268,12 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
                               margin: '0 0 10px 0',
                             }}>
                               <img src={gameReport.user.avatar_url}
-                                   alt="Deck Verified Site Logo"
-                                   style={{
-                                     height: '18px',
-                                     marginLeft: '3px',
-                                     borderRadius: '25%',
-                                   }} />
+                                alt="Deck Verified Site Logo"
+                                style={{
+                                  height: '18px',
+                                  marginLeft: '3px',
+                                  borderRadius: '25%',
+                                }} />
                               <span style={{
                                 padding: '0 0 3px 3px',
                                 margin: 0,
@@ -281,8 +282,8 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
                                 fontSize: '14px',
                                 lineHeight: '16px',
                               }}>
-                                                                {gameReport.user.login}
-                                                            </span>
+                                {gameReport.user.login}
+                              </span>
                             </div>
 
                             <PanelSectionRow key={`${gameReport.id}`}>
@@ -459,15 +460,15 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
                       justifyContent: 'left',
                       margin: '0px 0px 10px 0px',
                     }}>
-                                            <span style={{
-                                              color: 'white',
-                                              fontSize: '22px',
-                                              fontWeight: 'bold',
-                                              lineHeight: '28px',
-                                              textTransform: 'none',
-                                            }}>
-                                            External Game Reviews:
-                                        </span>
+                      <span style={{
+                        color: 'white',
+                        fontSize: '22px',
+                        fontWeight: 'bold',
+                        lineHeight: '28px',
+                        textTransform: 'none',
+                      }}>
+                        External Game Reviews:
+                      </span>
                     </div>
                   </div>
 
@@ -490,11 +491,11 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
                               margin: '0 0 10px 0',
                             }}>
                               <img src={review.source.avatar_url}
-                                   alt="Deck Verified Site Logo"
-                                   style={{
-                                     height: '18px',
-                                     marginLeft: '3px',
-                                   }} />
+                                alt="Deck Verified Site Logo"
+                                style={{
+                                  height: '18px',
+                                  marginLeft: '3px',
+                                }} />
                               <span style={{
                                 padding: '0 0 3px 3px',
                                 margin: 0,
@@ -503,8 +504,8 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
                                 fontSize: '14px',
                                 lineHeight: '16px',
                               }}>
-                                                                {review.source.name}
-                                                            </span>
+                                {review.source.name}
+                              </span>
                             </div>
 
                             <PanelSectionRow key={`${review.id}`}>
@@ -668,16 +669,24 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
               paddingBottom: 0,
               overflow: 'hidden',
             }}>
-              <PanelSocialButton
-                icon={<TbReport fill="#FF5E5B" />}
-                url={
-                  appId
-                    ? `${reportsWebsiteBaseUrl}/app/${appId}?openReportForm=true`
-                    : `${reportsWebsiteBaseUrl}/game/${gameName}?openReportForm=true`
-                }
-              >
+
+              <DialogButton
+                style={{
+                  width: '90%',
+                  minWidth: 0,
+                  padding: '3px',
+                  fontSize: '14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginLeft: 'auto',
+                  marginRight: 'auto',
+                  gap: '1rem',
+                }}
+                onClick={() => onChangePage('report_form')}>
+                <TbReport fill="#FF5E5B" />
                 Add your own report
-              </PanelSocialButton>
+              </DialogButton>
             </div>
           </div>
         </>

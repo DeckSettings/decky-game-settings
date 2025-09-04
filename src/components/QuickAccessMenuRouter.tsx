@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import GameSelectView from './views/GameSelectView'
 import GameDetailsView from './views/GameDetailsView'
+import CreateReportView from './views/CreateReportView'
 import SearchResultsView from './views/SearchResultsView'
 import type { GameInfo, PluginPage } from '../interfaces'
 import PluginConfigView from './views/PluginConfigView'
@@ -68,7 +69,15 @@ const QuickAccessMenuRouter: React.FC = () => {
         <GameDetailsView
           gameName={selectedGame.title}
           appId={selectedGame.appId}
+          onChangePage={changePage}
           onGoBack={handleGoBack}
+        />
+      )}
+      {currentPage === 'report_form' && (
+        <CreateReportView
+          onGoBack={handleGoBack}
+          defaultGameName={selectedGame?.title}
+          defaultAppId={selectedGame?.appId}
         />
       )}
 
