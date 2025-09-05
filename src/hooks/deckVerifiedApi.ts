@@ -113,27 +113,3 @@ export const fetchReportFormDefinition = async (): Promise<any | null> => {
     return null
   }
 }
-
-// Local storage for per-game report form states
-export const reportFormStatesKey = `${__PLUGIN_NAME__}:reportFormStates`
-
-export const loadReportFormStates = (): Record<string, any> => {
-  try {
-    const raw = window.localStorage.getItem(reportFormStatesKey)
-    if (!raw) return {}
-    const obj = JSON.parse(raw)
-    return (obj && typeof obj === 'object') ? obj : {}
-  } catch {
-    return {}
-  }
-}
-
-export const saveReportFormState = (key: string, state: Record<string, any>): void => {
-  try {
-    const all = loadReportFormStates()
-    all[key] = state
-    window.localStorage.setItem(reportFormStatesKey, JSON.stringify(all))
-  } catch (e) {
-    console.error('Failed to save report form state', e)
-  }
-}

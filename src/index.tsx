@@ -20,7 +20,7 @@ export default definePlugin(() => {
     icon: <MdTune />,
     // The function triggered when your plugin unloads
     onDismount() {
-      console.log('Unloading')
+      console.log('[decky-game-settings:index] Unloading background profile listener.')
     },
   }
 })

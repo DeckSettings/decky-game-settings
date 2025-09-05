@@ -18,7 +18,10 @@ export type GithubUserProfile = {
 const ghTokensKey = `${__PLUGIN_NAME__}:githubTokens`
 const ghProfileKey = `${__PLUGIN_NAME__}:githubUserProfile`
 const GITHUB_APP_CLIENT_ID = 'Iv23liOILKnctgTZ9i33'
-const COMMON_HEADERS = {
+
+export const githubApiBase = 'https://api.github.com'
+
+export const commonGithubApiHeaders = {
   Accept: 'application/json',
   'X-GitHub-Api-Version': '2022-11-28',
 }
@@ -58,7 +61,7 @@ export async function fetchUserProfile(access_token: string): Promise<GithubUser
   const res = await fetchNoCors('https://api.github.com/user', {
     method: 'GET',
     headers: {
-      ...COMMON_HEADERS,
+      ...commonGithubApiHeaders,
       Accept: 'application/vnd.github+json',
       Authorization: `Bearer ${access_token}`,
     },
@@ -78,7 +81,7 @@ export async function beginDeviceFlow() {
   const body = new URLSearchParams({ client_id: GITHUB_APP_CLIENT_ID })
   const res = await fetchNoCors('https://github.com/login/device/code', {
     method: 'POST',
-    headers: { ...COMMON_HEADERS, 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers: { ...commonGithubApiHeaders, 'Content-Type': 'application/x-www-form-urlencoded' },
     body,
   })
   if (!res.ok) throw new Error(`begin_device_flow failed: ${res.status} ${res.statusText}`)
@@ -99,7 +102,7 @@ export async function pollOnce(device_code: string) {
   })
   const res = await fetchNoCors('https://github.com/login/oauth/access_token', {
     method: 'POST',
-    headers: { ...COMMON_HEADERS, 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers: { ...commonGithubApiHeaders, 'Content-Type': 'application/x-www-form-urlencoded' },
     body,
   })
   if (!res.ok) throw new Error(`poll_for_token failed: ${res.status} ${res.statusText}`)
@@ -114,7 +117,7 @@ export async function refreshToken(refresh_token: string): Promise<TokenBundle> 
   })
   const res = await fetchNoCors('https://github.com/login/oauth/access_token', {
     method: 'POST',
-    headers: { ...COMMON_HEADERS, 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers: { ...commonGithubApiHeaders, 'Content-Type': 'application/x-www-form-urlencoded' },
     body,
   })
   if (!res.ok) throw new Error(`refresh_token failed: ${res.status} ${res.statusText}`)

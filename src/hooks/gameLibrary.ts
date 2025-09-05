@@ -2,6 +2,13 @@ import { Router } from '@decky/ui'
 import { ignoreListAppRegex, ignoreListCompatibilityTools } from '../constants'
 import type { GameInfo } from '../interfaces'
 
+
+export type ImageInfo = {
+  url: string
+  path?: string
+  name?: string
+}
+
 export const getGamesList = async () => {
   const installFolders = await SteamClient.InstallFolder.GetInstallFolders()
   const installedGames: Required<GameInfo>[] = []
@@ -77,4 +84,38 @@ export const getGamesList = async () => {
   }
 
   return { runningGame, installedGames, nonInstalledGames }
+}
+
+// Fetch local Steam screenshots via the SteamClient API
+export const fetchScreenshotList = async (): Promise<ImageInfo[]> => {
+  try {
+    // Prefer all local screenshots; fallback to all-apps variant
+    // @ts-ignore global from @decky/ui
+    const allScreenshots = await (SteamClient?.Screenshots?.GetAllLocalScreenshots?.() ?? SteamClient?.Screenshots?.GetAllAppsLocalScreenshots?.())
+    if (!Array.isArray(allScreenshots)) return []
+    // Sort newest first
+    const sorted = allScreenshots.sort((a: any, b: any) => (b?.nCreated ?? 0) - (a?.nCreated ?? 0))
+    // Build display list with robust URL + disk path
+    const resolved: ImageInfo[] = await Promise.all(sorted.map(async (s: any) => {
+      const created = typeof s?.nCreated === 'number' ? new Date(s.nCreated * 1000) : null
+      const label = created ? `${s?.nAppID ?? ''} – ${created.toLocaleString()}` : `${s?.nAppID ?? ''}`
+      let url: string | undefined = typeof s?.strUrl === 'string' && s.strUrl.length > 0 ? s.strUrl : undefined
+      let path: string | undefined
+      try {
+        // @ts-ignore global from @decky/ui
+        const localPath: string = await SteamClient?.Screenshots?.GetLocalScreenshotPath?.(`${s?.nAppID}`, s?.hHandle)
+        if (typeof localPath === 'string' && localPath.length > 0) path = localPath
+      } catch { }
+      if (!url && path) {
+        url = path.startsWith('file://') ? path : `file://${path}`
+      }
+      if (!url) url = ''
+      return { url, path, name: label }
+    }))
+    // Filter any still-missing URLs
+    return resolved.filter(x => x.url)
+  } catch (e) {
+    console.warn('[gameLibrary] Failed to fetch screenshots', e)
+    return []
+  }
 }

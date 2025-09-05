@@ -1,13 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { DialogButton, Focusable, PanelSection, PanelSectionRow, ToggleField, showModal } from '@decky/ui'
+import { DialogButton, Focusable, PanelSection, PanelSectionRow, ToggleField, SliderField, showModal } from '@decky/ui'
 import { MdArrowBack } from 'react-icons/md'
 import { getGamesList } from '../../hooks/gameLibrary'
 import type { ReportDraft } from '../../interfaces'
 import { TextFieldModal } from '../elements/TextFieldModal'
-import { fetchReportFormDefinition, loadReportFormStates, saveReportFormState } from '../../hooks/deckVerifiedApi'
+import { fetchReportFormDefinition } from '../../hooks/deckVerifiedApi'
+import { loadReportFormStates, saveReportFormState, submitReportDraft } from '../../hooks/githubSubmitReport'
 import ReactMarkdown from 'react-markdown'
 import rehypeSanitize from 'rehype-sanitize'
 import { ImageSelectorModal } from '../elements/ImageSelectorModal'
+import { fetchScreenshotList } from '../../hooks/gameLibrary'
 import { fetchSystemInfo, inferOsVersionString, inferSteamDeckDeviceLabel } from '../../hooks/systemInfo'
 import { SelectModal } from '../elements/SelectModal'
 
@@ -24,6 +26,7 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [selectedImages, setSelectedImages] = useState<string[]>([])
   const [formReady, setFormReady] = useState<boolean>(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   // Fetch dynamic form definition and initialize values
   useEffect(() => {
@@ -93,6 +96,118 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
         console.warn('[CreateReportView] Could not infer system fields')
       }
 
+      // Build simplified sections with transformed fields based on hardware and rules
+      try {
+        const hardware = Array.isArray(def?.hardware) ? def.hardware : []
+        const getHw = (deviceName?: string) => hardware.find((h: any) => h?.name === deviceName)
+
+        const body: any[] = def?.template?.body || []
+        const sections: any[] = []
+        let current: any | null = null
+        let inGame = false
+        let isPerf = false
+
+        const push = () => { if (current) sections.push(current); current = null }
+
+        body.forEach((item: any) => {
+          if (item.type === 'markdown') {
+            const text: string = item?.attributes?.value || ''
+            const isInGame = /##\s*In-Game Settings/i.test(text)
+            const isAdditional = /##\s*Additional Notes/i.test(text)
+            isPerf = /##\s*SteamOS Performance Settings/i.test(text)
+            inGame = isInGame
+            push()
+            current = {
+              markdown: isInGame ? '## In-Game Settings' : (isAdditional ? '## Additional Notes' : text),
+              fields: [] as any[],
+            }
+            if (isInGame) {
+              current.fields.push({
+                type: 'image_select',
+                id: 'game_display_settings',
+                attributes: { label: 'Game Display Settings', description: 'Upload screenshots of your in-game settings.' },
+              })
+            }
+            return
+          }
+
+          // Skip replaced textareas in In-Game section
+          if (inGame && (item.id === 'game_display_settings' || item.id === 'game_graphics_settings')) return
+
+          // Seed defaults
+          if ((item.type === 'input' || item.type === 'textarea') && item.id && item.attributes?.value && !initial[item.id]) {
+            initial[item.id] = String(item.attributes.value)
+          }
+          if (item.type === 'dropdown' && item.id && Array.isArray(item.attributes?.options) && typeof item.attributes?.default === 'number') {
+            const idx = item.attributes.default
+            const opts = item.attributes.options
+            if (!initial[item.id] && opts[idx] !== undefined) initial[item.id] = String(opts[idx])
+          }
+
+          // Transform per rules
+          let transformed: any = { ...item }
+          if (isPerf) {
+            // Strip descriptions in performance section
+            if (transformed?.attributes) transformed.attributes = { ...transformed.attributes, description: undefined }
+            // Convert performance inputs to sliders
+            if (item.type === 'input') {
+              const lowerId = String(item?.id || '').toLowerCase()
+              const hw = getHw(initial['device']) || {}
+              let min: number | undefined
+              let max: number | undefined
+              let step: number | undefined
+              if (lowerId === 'frame_limit') {
+                min = 10
+                max = Number(hw.max_refresh_rate) || 60
+                step = 1
+              }
+              if (lowerId === 'tdp_limit') {
+                min = 3
+                max = Number(hw.max_tdp_w) || 15
+                step = 1
+              }
+              if (lowerId === 'manual_gpu_clock') {
+                min = 200
+                max = Number(hw.max_gpu_clk) || 1600
+                step = 100
+              }
+              if (min !== undefined && max !== undefined && step !== undefined) {
+                transformed = {
+                  type: 'slider',
+                  id: item.id,
+                  attributes: { label: item?.attributes?.label, min, max, step },
+                  validations: item.validations,
+                }
+              }
+            }
+          }
+          if (item.type === 'dropdown') {
+            const opts: string[] = Array.isArray(item?.attributes?.options) ? item.attributes.options : []
+            const isOnOff = opts.length === 2 && new Set(opts.map(o => String(o).toLowerCase())).size === 2 && opts.map(o => String(o).toLowerCase()).every(o => o === 'on' || o === 'off')
+            if (isOnOff) {
+              transformed = { type: 'toggle', id: item.id, attributes: { label: item?.attributes?.label }, validations: item.validations }
+            }
+            if (item.id === 'enable_vrr') {
+              const hw = getHw(initial['device'])
+              const supportsVRR = !!hw?.supports_vrr
+              if (!supportsVRR) {
+                // Ensure default value
+                const dIdx = typeof item?.attributes?.default === 'number' ? item.attributes.default : 0
+                const op = Array.isArray(item?.attributes?.options) ? item.attributes.options : []
+                const defVal = op[dIdx] ?? op[0] ?? 'Off'
+                if (!initial[item.id]) initial[item.id] = String(defVal)
+                return // hide field
+              }
+            }
+          }
+          if (!current) current = { markdown: '', fields: [] }
+          current.fields.push(transformed)
+        })
+        push()
+        setFormDef({ ...def, sections })
+        console.log(sections)
+      } catch { }
+
       setValues(initial)
       setFormReady(true)
     }
@@ -116,6 +231,54 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
   const handleClose = () => {
     persistDraft()
     onGoBack()
+  }
+
+  const handleSubmit = async () => {
+    if (!formDef) return
+    const templateBody: any[] = formDef?.template?.body || []
+    const items = templateBody.filter((x: any) => x && x.type !== 'markdown' && x.id)
+    // Ensure missing items are present as empty strings
+    const nextValues: Record<string, string> = { ...values }
+    // Special-case: treat screenshots as satisfying game_display_settings
+    if (Array.isArray(selectedImages) && selectedImages.length > 0) {
+      try { nextValues['game_display_settings'] = JSON.stringify(selectedImages) } catch { nextValues['game_display_settings'] = selectedImages.join('\n') }
+    }
+    items.forEach((it: any) => {
+      if (nextValues[it.id] === undefined || nextValues[it.id] === null) nextValues[it.id] = ''
+    })
+    // Validate all items
+    const newErrors: Record<string, string> = {}
+    let ok = true
+    items.forEach((it: any) => {
+      if (it.id === 'game_display_settings') {
+        const hasImages = Array.isArray(selectedImages) && selectedImages.length > 0
+        const err = hasImages ? '' : validate(it, nextValues[it.id] ?? '')
+        if (err) ok = false
+        if (err) newErrors[it.id] = err
+        return
+      }
+      const val = nextValues[it.id] ?? ''
+      const err = validate(it, val)
+      if (err) ok = false
+      if (err) newErrors[it.id] = err
+    })
+    console.error(newErrors)
+    setErrors(newErrors)
+    if (!ok) {
+      setSubmitError('Please correct the highlighted fields before submitting.')
+      return
+    }
+    setSubmitError(null)
+    // Build final draft and submit
+    const finalDraft: Record<string, any> = { ...nextValues, images: selectedImages }
+    try {
+      await submitReportDraft(finalDraft, templateBody)
+      setSubmitError(null)
+    } catch (e: any) {
+      const msg = (e?.message && typeof e.message === 'string') ? e.message : 'Submission failed. Please try again.'
+      setSubmitError(msg)
+      return
+    }
   }
 
   const schemaProps: Record<string, any> = useMemo(() => formDef?.schema?.properties || {}, [formDef])
@@ -196,149 +359,131 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
         {!formReady ? (
           <PanelSection spinner title="Loading form..." />
         ) : null}
-        {/* Render sections dynamically from report form */}
-        {formReady && formDef?.template?.body ? (
+        {/* Render sections dynamically from preprocessed sections */}
+        {formReady && Array.isArray(formDef?.sections) ? (
           <>
             {(() => {
               const elements: React.ReactNode[] = []
-              let inGameSettingsSection = false
-              let additionalNotesSection = false
-              const skipIds = new Set<string>(['game_display_settings', 'game_graphics_settings'])
+              formDef.sections.forEach((section: any, sIdx: number) => {
+                if (elements.length > 0) elements.push(<hr key={`hr-${sIdx}`} />)
+                elements.push(
+                  <div key={`sec-${sIdx}`} style={{ padding: '8px 16px 8px 0' }}>
+                    <ReactMarkdown
+                      rehypePlugins={[rehypeSanitize]}
+                      allowedElements={["h1", "h2", "h3", "h4", "p", "strong", "br"]}
+                      components={{
+                        h1: ({ children }) => <h2 style={{ margin: 0, fontSize: '20px' }}>{children}</h2>,
+                        h2: ({ children }) => <h2 style={{ margin: 0, fontSize: '18px' }}>{children}</h2>,
+                        h3: ({ children }) => <h3 style={{ margin: 0, fontSize: '16px' }}>{children}</h3>,
+                        h4: ({ children }) => <h4 style={{ margin: 0, fontSize: '14px' }}>{children}</h4>,
+                        p: ({ children }) => <p style={{ fontSize: '12px' }}>{children}</p>,
+                      }}
+                    >
+                      {section.markdown || ''}
+                    </ReactMarkdown>
+                  </div>,
+                )
+                section.fields?.forEach((item: any, idx: number) => {
+                  const type = item.type
+                  const label = item?.attributes?.label || item.id
+                  const required = !!item?.validations?.required
+                  const err = errors[item.id]
+                  const current = values[item.id] ?? ''
 
-              formDef.template.body.forEach((item: any, idx: number) => {
-                if (item.type === 'markdown') {
-                  const text: string = item?.attributes?.value || ''
-                  const isInGame = /##\s*In-Game Settings/i.test(text)
-                  const isAdditionalNotes = /##\s*Additional Notes/i.test(text)
-                  // Separate sections with a horizontal line (except before the first)
-                  if (elements.length > 0) elements.push(<hr key={`hr-${idx}`} />)
-                  if (isInGame) {
-                    inGameSettingsSection = true
+                  // Handle image selector input
+                  if (type === 'image_select') {
                     elements.push(
-                      <div key={`md-${idx}`} style={{ padding: '8px 16px 8px 0' }}>
-                        <div style={{ fontWeight: 700, fontSize: '18px' }}>In-Game Settings</div>
-                        <div style={{ fontSize: '12px', opacity: 0.8 }}>Upload screenshots of your in-game settings</div>
-                        {/* Image selector row */}
-                        <PanelSectionRow>
-                          <DialogButton
-                            style={centeredRowStyle}
-                            onClick={() => showModal(
-                              <ImageSelectorModal
-                                initialSelected={selectedImages}
-                                onClosed={(sel) => setSelectedImages(sel)}
-                              />,
-                            )}
-                          >
-                            <div>
-                              <div style={{ fontWeight: 600 }}>Select screenshots</div>
-                              <div style={{ fontSize: '12px', opacity: 0.8 }}>
-                                {selectedImages.length > 0 ? `${selectedImages.length} selected` : 'Tap to choose images'}
-                              </div>
+                      <PanelSectionRow key={`imgsel-${sIdx}-${idx}`}>
+                        <DialogButton
+                          style={centeredRowStyle}
+                          onClick={async () => {
+                            try {
+                              const imgs = await fetchScreenshotList()
+                              showModal(
+                                <ImageSelectorModal
+                                  images={imgs}
+                                  initialSelected={selectedImages}
+                                  onClosed={(sel) => setSelectedImages(sel)}
+                                />,
+                              )
+                            } catch {
+                              showModal(
+                                <ImageSelectorModal
+                                  images={[]}
+                                  initialSelected={selectedImages}
+                                  onClosed={(sel) => setSelectedImages(sel)}
+                                />,
+                              )
+                            }
+                          }}
+                        >
+                          <div>
+                            <div style={{ fontWeight: 600 }}>Select screenshots</div>
+                            <div style={{ fontSize: '12px', opacity: 0.8 }}>
+                              {selectedImages.length > 0 ? `${selectedImages.length} selected` : 'Tap to choose images'}
                             </div>
-                          </DialogButton>
+                          </div>
+                        </DialogButton>
+                      </PanelSectionRow>,
+                    )
+                    return
+                  }
+
+                  // Handle slider inputs
+                  if (type === 'slider') {
+                    const toNum = (v: any) => { const n = typeof v === 'number' ? v : parseFloat(String(v)); return isNaN(n) ? 0 : n }
+                    const min = Number(item?.attributes?.min) || 0
+                    const max = Number(item?.attributes?.max) || 100
+                    const step = Number(item?.attributes?.step) || 1
+                    const isUnset = current === '' || current === undefined || current === null
+                    const valueNum = isUnset ? min : toNum(current)
+                    elements.push(
+                      <div style={{ padding: "3px 0" }}>
+                        <PanelSectionRow key={`row-${item.id}-${sIdx}-${idx}`}>
+                          <div style={{ width: '100%', padding: 0 }}>
+                            <ToggleField
+                              checked={!isUnset}
+                              label={`Set ${label}`}
+                              onChange={(enabled: boolean) => {
+                                if (!enabled) {
+                                  setField(item, '')
+                                } else {
+                                  const currentAfter = values[item.id]
+                                  const n = currentAfter === '' || currentAfter === undefined || currentAfter === null ? min : toNum(currentAfter)
+                                  setField(item, String(n))
+                                }
+                              }}
+                            />
+                            {!isUnset && (
+                              <div style={{ marginTop: '6px' }}>
+                                <SliderField
+                                  value={valueNum}
+                                  min={min}
+                                  max={max}
+                                  step={step}
+                                  showValue={true}
+                                  editableValue={true}
+                                  onChange={(v) => setField(item, String(v))}
+                                />
+                              </div>
+                            )}
+                            {err ? <div style={{ fontSize: '10px', color: 'orangered', marginTop: '2px' }}>{err}</div> : null}
+                          </div>
                         </PanelSectionRow>
                       </div>,
                     )
-                  } else if (isAdditionalNotes) {
-                    additionalNotesSection = true
-                    // Discard markdown and render just a header
-                    elements.push(
-                      <div key={`md-${idx}`} style={{ padding: '8px 16px 8px 0' }}>
-                        <div style={{ fontWeight: 700, fontSize: '18px' }}>Additional Notes</div>
-                      </div>,
-                    )
-                  } else {
-                    elements.push(
-                      <div key={`md-${idx}`} style={{ padding: '8px 16px 8px 0' }}>
-                        <ReactMarkdown
-                          rehypePlugins={[rehypeSanitize]}
-                          allowedElements={["h1", "h2", "h3", "h4", "p", "strong", "br"]}
-                          components={{
-                            h1: ({ children }) => <h2 style={{ margin: 0, fontSize: '20px' }}>{children}</h2>,
-                            h2: ({ children }) => <h2 style={{ margin: 0, fontSize: '18px' }}>{children}</h2>,
-                            h3: ({ children }) => <h3 style={{ margin: 0, fontSize: '16px' }}>{children}</h3>,
-                            h4: ({ children }) => <h4 style={{ margin: 0, fontSize: '14px' }}>{children}</h4>,
-                            p: ({ children }) => <p style={{ fontSize: '12px' }}>{children}</p>,
-                          }}
-                        >
-                          {text}
-                        </ReactMarkdown>
-                      </div>,
-                    )
+                    return
                   }
-                  return
-                }
 
-                if (inGameSettingsSection && item.id && skipIds.has(item.id)) {
-                  // Skip the two textareas replaced by image upload
-                  return
-                }
-
-                // Input field types
-                if (item.type === 'input' || item.type === 'textarea') {
-                  const label = item?.attributes?.label || item.id
-                  const required = !!item?.validations?.required
-                  const current = values[item.id] ?? ''
-                  const err = errors[item.id]
-                  const isAdditionalNotesField = additionalNotesSection && item.id === 'additional_notes'
-                  elements.push(
-                    <div style={{ padding: "3px 0" }}>
-                      <PanelSectionRow key={`row-${item.id}-${idx}`}>
-                        <div style={{ width: '100%', padding: 0 }}>
-                          <div style={{ fontWeight: 600, fontSize: '13px' }}>
-                            {label} {required ? <span style={{ color: 'orangered' }}>*</span> : null}
-                          </div>
-                          <DialogButton
-                            style={centeredRowStyle}
-                            onClick={() => showModal(
-                              <TextFieldModal
-                                label={label}
-                                initialValue={current}
-                                multiline={isAdditionalNotesField}
-                                rows={isAdditionalNotesField ? 5 : 1}
-                                onClosed={(val) => {
-                                  console.log(val)
-                                  setField(item, val)
-                                }}
-                              />,
-                            )}
-                          >
-                            <div style={{ fontSize: '11px', opacity: 0.8 }}>{current || (isAdditionalNotesField ? 'Tap to enter additional notes' : 'Tap to enter')}</div>
-                          </DialogButton>
-                          {err ? <div style={{ fontSize: '10px', color: 'orangered', marginTop: '2px' }}>{err}</div> : null}
-                          {item?.attributes?.description && !isAdditionalNotesField ? (
-                            <div style={{ fontSize: '11px', opacity: 0.8, marginTop: '2px' }}>{item.attributes.description}</div>
-                          ) : null}
-                        </div>
-                      </PanelSectionRow>
-                    </div>,
-                  )
-                  return
-                }
-
-                if (item.type === 'dropdown') {
-                  const label = item?.attributes?.label || item.id
-                  const required = !!item?.validations?.required
-                  const options: string[] = item?.attributes?.options || []
-                  const value = values[item.id]
-                  const selected = value ? options.findIndex((x) => x === value) : (typeof item?.attributes?.default === 'number' ? item.attributes.default : -1)
-                  const err = errors[item.id]
-
-                  // Render pure On/Off dropdowns as a ToggleField. Everything else is a SelectModal
-                  const isOnOffDropdown = options.length === 2 && new Set(options.map(o => String(o).toLowerCase())).size === 2 && options.map(o => String(o).toLowerCase()).every(o => o === 'on' || o === 'off')
-                  if (isOnOffDropdown) {
-                    const defaultIndex = (typeof item?.attributes?.default === 'number' ? item.attributes.default : 0)
-                    const currentValue = (typeof value === 'string' && value.length > 0)
-                      ? value
-                      : (options[defaultIndex] ?? options[0] ?? 'Off')
-                    const checked = String(currentValue).toLowerCase() === 'on'
+                  // Handle toggle inputs
+                  if (type === 'toggle') {
+                    const checked = String(current).toLowerCase() === 'on'
                     elements.push(
                       <div style={{ padding: "3px 0" }}>
-                        <PanelSectionRow key={`row-${item.id}-${idx}`}>
+                        <PanelSectionRow key={`row-${item.id}-${sIdx}-${idx}`}>
                           <ToggleField
                             checked={checked}
                             label={label}
-                            description={item?.attributes?.description}
                             onChange={(val: boolean) => setField(item, val ? 'On' : 'Off')}
                           />
                         </PanelSectionRow>
@@ -346,10 +491,16 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
                       </div>,
                     )
                     return
-                  } else {
+                  }
+
+                  // Handle dropdown inputs
+                  if (type === 'dropdown') {
+                    const options: string[] = item?.attributes?.options || []
+                    const value = values[item.id]
+                    const selected = value ? options.findIndex((x) => x === value) : (typeof item?.attributes?.default === 'number' ? item.attributes.default : -1)
                     elements.push(
                       <div style={{ padding: "3px 0" }}>
-                        <PanelSectionRow key={`row-${item.id}-${idx}`}>
+                        <PanelSectionRow key={`row-${item.id}-${sIdx}-${idx}`}>
                           <div style={{ ...centeredRowStyle, padding: 0, display: 'block' }}>
                             <div style={{ fontWeight: 600, fontSize: '13px', padding: '6px 6px 2px 0' }}>
                               {label} {required ? <span style={{ color: 'orangered' }}>*</span> : null}
@@ -377,14 +528,62 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
                         </PanelSectionRow>
                       </div>,
                     )
+                    return
                   }
-                }
+
+                  const isAdditionalNotesField = item.type === 'textarea' && item.id === 'additional_notes'
+                  elements.push(
+                    <div style={{ padding: "3px 0" }}>
+                      <PanelSectionRow key={`row-${item.id}-${sIdx}-${idx}`}>
+                        <div style={{ width: '100%', padding: 0 }}>
+                          <div style={{ fontWeight: 600, fontSize: '13px' }}>
+                            {label} {required ? <span style={{ color: 'orangered' }}>*</span> : null}
+                          </div>
+                          <DialogButton
+                            style={centeredRowStyle}
+                            onClick={() => showModal(
+                              <TextFieldModal
+                                label={label}
+                                initialValue={current}
+                                multiline={isAdditionalNotesField}
+                                rows={isAdditionalNotesField ? 5 : 1}
+                                onClosed={(val) => setField(item, val)}
+                              />,
+                            )}
+                          >
+                            <div style={{ fontSize: '11px', opacity: 0.8 }}>{current || (isAdditionalNotesField ? 'Tap to enter additional notes' : 'Tap to enter')}</div>
+                          </DialogButton>
+                          {err ? <div style={{ fontSize: '10px', color: 'orangered', marginTop: '2px' }}>{err}</div> : null}
+                          {item?.attributes?.description ? (
+                            <div style={{ fontSize: '11px', opacity: 0.8, marginTop: '2px' }}>{item.attributes.description}</div>
+                          ) : null}
+                        </div>
+                      </PanelSectionRow>
+                    </div>,
+                  )
+                })
               })
               return elements
             })()}
+            {/* Submit area */}
+            <div style={{ padding: '8px 16px 8px 0' }}>
+              <div style={{ color: 'orangered', fontSize: '12px', marginBottom: '6px', display: submitError ? 'visible' : 'hidden' }}>{submitError}</div>
+              {/* {submitError ? (
+                <div style={{ color: 'orangered', fontSize: '12px', marginBottom: '6px' }}>{submitError}</div>
+              ) : null} */}
+              <PanelSectionRow>
+                <Focusable flow-children="horizontal" style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+                  <DialogButton onClick={handleSubmit} style={{ padding: '8px 12px', marginRight: '16px', fontSize: '12px' }}>
+                    Submit
+                  </DialogButton>
+                </Focusable>
+              </PanelSectionRow>
+            </div>
           </>
         ) : null}
       </PanelSection>
+      <div style={{ height: '32px' }} />
+      {/*  provide space for bottom banner */}
     </>
   )
 }
