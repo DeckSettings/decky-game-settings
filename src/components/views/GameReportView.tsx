@@ -34,6 +34,10 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack })
     h1: 'h4',
     h2: 'h4',
     h3: 'h4',
+    img(props) {
+      const { node, ...rest } = props as any
+      return <img {...rest} style={{ maxWidth: '100%', height: 'auto', display: 'block' }} />
+    },
     a(props) {
       const { node, href, title, children, ...rest } = props
       // Enable shields.io filtering here
