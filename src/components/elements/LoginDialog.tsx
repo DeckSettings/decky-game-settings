@@ -5,8 +5,7 @@ import { QRCodeSVG } from 'qrcode.react'
 
 type Step = 'init' | 'waiting' | 'success' | 'error'
 
-export const popupLoginDialog = (onCloseCallback = () => {
-}) => {
+export const popupLoginDialog = (onCloseCallback = () => { }) => {
   let closePopup = () => {
   }
 
@@ -25,7 +24,7 @@ export const popupLoginDialog = (onCloseCallback = () => {
 
     // Start device flow
     useEffect(() => {
-      ;(async () => {
+      ; (async () => {
         try {
           const d = await beginDeviceFlow()
           setDeviceCode(d.device_code)

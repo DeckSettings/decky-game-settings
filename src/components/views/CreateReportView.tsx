@@ -5,13 +5,14 @@ import { getGamesList } from '../../hooks/gameLibrary'
 import type { ReportDraft } from '../../interfaces'
 import { TextFieldModal } from '../elements/TextFieldModal'
 import { fetchReportFormDefinition } from '../../hooks/deckVerifiedApi'
-import { loadReportFormStates, saveReportFormState, submitReportDraft } from '../../hooks/githubSubmitReport'
+import { loadReportFormStates, saveReportFormState, submitReportDraft, removeReportFromState } from '../../hooks/githubSubmitReport'
 import ReactMarkdown from 'react-markdown'
 import rehypeSanitize from 'rehype-sanitize'
 import { ImageSelectorModal } from '../elements/ImageSelectorModal'
 import { fetchScreenshotList } from '../../hooks/gameLibrary'
 import { fetchSystemInfo, inferOsVersionString, inferSteamDeckDeviceLabel } from '../../hooks/systemInfo'
 import { SelectModal } from '../elements/SelectModal'
+import ReportSubmittedModal from '../elements/ReportSubmittedModal'
 
 interface CreateReportViewProps {
   onGoBack: () => void;
@@ -228,6 +229,11 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
     saveReportFormState(key, draft)
   }
 
+  const clearDraft = () => {
+    const key = makeDraftKey(values['game_name'], values['app_id'])
+    removeReportFromState(key)
+  }
+
   const handleClose = () => {
     persistDraft()
     onGoBack()
@@ -271,14 +277,30 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
     setSubmitError(null)
     // Build final draft and submit
     const finalDraft: Record<string, any> = { ...nextValues, images: selectedImages }
+    let issueUrl: string | null = null
     try {
-      await submitReportDraft(finalDraft, templateBody)
+      issueUrl = await submitReportDraft(finalDraft, templateBody)
       setSubmitError(null)
     } catch (e: any) {
       const msg = (e?.message && typeof e.message === 'string') ? e.message : 'Submission failed. Please try again.'
       setSubmitError(msg)
       return
     }
+
+    // Clear saved draft from localStorage
+    clearDraft()
+
+    // Show success modal with QR and actions, then go back on close
+    const url = issueUrl || ''
+    const modal = showModal(
+      <ReportSubmittedModal
+        url={url}
+        onClose={() => {
+          try { (modal as any)?.Close?.() } catch { }
+          onGoBack()
+        }}
+      />,
+    )
   }
 
   const schemaProps: Record<string, any> = useMemo(() => formDef?.schema?.properties || {}, [formDef])

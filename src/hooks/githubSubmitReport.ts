@@ -29,8 +29,19 @@ export const saveReportFormState = (key: string, state: Record<string, any>): vo
   }
 }
 
+// Save the report state from localstorage
+export const removeReportFromState = (key: string): void => {
+  try {
+    const all = loadReportFormStates()
+    all[key] = null
+    window.localStorage.setItem(reportFormStatesKey, JSON.stringify(all))
+  } catch (e) {
+    console.error('Failed to save report form state', e)
+  }
+}
+
 // Submit game report draft as Github Issue
-export const submitReportDraft = async (payload: any, templateBody: any[]): Promise<void> => {
+export const submitReportDraft = async (payload: any, templateBody: any[]): Promise<string | null> => {
   try {
     // 1) Convert local image paths to base64
     const paths: string[] = Array.isArray(payload.images) ? payload.images : []
@@ -53,7 +64,9 @@ export const submitReportDraft = async (payload: any, templateBody: any[]): Prom
     const body = buildIssueBodyFromTemplate(payload, templateBody, uploadedUrls)
     // 4) Create issue with placeholder title
     const title = "(Placeholder - Issue title will be automatically populated with the information provided below on submit)"
-    await createIssueWithBody(title, body)
+    const issue: any = await createIssueWithBody(title, body)
+    const url: string | null = (issue && typeof issue.html_url === 'string') ? issue.html_url : (issue && typeof issue.url === 'string' ? issue.url : null)
+    return url
   } catch (e) {
     console.error('[deckVerifiedApi] submitReportDraft failed', e)
     throw e
