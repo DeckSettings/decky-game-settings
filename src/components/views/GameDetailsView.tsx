@@ -22,10 +22,10 @@ import { popupLoginDialog } from '../elements/LoginDialog'
 const deckVerifiedIconSrc = 'https://deckverified.games/deck-verified/assets/logo-dark-DRV01ZBg.png'
 
 export interface GameDetailsViewProps {
-  gameName: string;
-  appId?: number;
-  onGoBack: () => void;
-  onChangePage: (page: PluginPage) => void;
+  gameName: string
+  appId?: number
+  onGoBack: () => void
+  onChangePage: (page: PluginPage) => void
 }
 
 const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGoBack, onChangePage }) => {
@@ -177,11 +177,11 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
                       textAlign: 'center',
                       width: '100%',
                       textShadow: `
-                                              -3px -3px 7px #0e141b,
-                                              3px -3px 7px #0e141b,
-                                              -3px 3px 7px #0e141b,
-                                              3px 3px 7px #0e141b
-                                            `,
+                        -3px -3px 7px #0e141b,
+                        3px -3px 7px #0e141b,
+                        -3px 3px 7px #0e141b,
+                        3px 3px 7px #0e141b
+                      `,
                     }}>
                       {gameName}
                     </div>
@@ -190,11 +190,11 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
                     <div style={{
                       fontSize: '11px',
                       textShadow: `
-                                              -2px -2px 10px #0e141b,
-                                              2px -2px 10px #0e141b,
-                                              -2px 2px 10px #0e141b,
-                                              2px 2px 10px #0e141b
-                                            `,
+                        -2px -2px 10px #0e141b,
+                        2px -2px 10px #0e141b,
+                        -2px 2px 10px #0e141b,
+                        2px 2px 10px #0e141b
+                      `,
                     }}>
                       App ID: {appId}
                     </div>
@@ -203,12 +203,32 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
               ) : (
                 <>
                   {gameName && (
-                    <div style={{ fontSize: '18px', fontWeight: 'bold', color: 'white' }}>
+
+                    <div style={{
+                      fontSize: '18px',
+                      fontWeight: 'bold',
+                      textAlign: 'center',
+                      width: '100%',
+                      textShadow: `
+                        -3px -3px 7px #0e141b,
+                        3px -3px 7px #0e141b,
+                        -3px 3px 7px #0e141b,
+                        3px 3px 7px #0e141b
+                      `,
+                    }}>
                       {gameName}
                     </div>
                   )}
                   {appId && (
-                    <div style={{ fontSize: '11px' }}>
+                    <div style={{
+                      fontSize: '11px',
+                      textShadow: `
+                        -2px -2px 10px #0e141b,
+                        2px -2px 10px #0e141b,
+                        -2px 2px 10px #0e141b,
+                        2px 2px 10px #0e141b
+                      `,
+                    }}>
                       App ID: {appId}
                     </div>
                   )}
