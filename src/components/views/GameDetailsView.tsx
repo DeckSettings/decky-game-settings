@@ -158,10 +158,10 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
                 <div style={{
                   width: '100%',
                   background: `
-                                      linear-gradient(to right, #0e141b 0%, transparent 20%, transparent 80%, #0e141b 100%),
-                                      linear-gradient(to bottom, #0e141b 0%, transparent 40%, transparent 60%, #0e141b 100%),
-                                      url(${metadata.hero})
-                                    `,
+                    linear-gradient(to right, #0e141b 0%, transparent 20%, transparent 80%, #0e141b 100%),
+                    linear-gradient(to bottom, #0e141b 0%, transparent 40%, transparent 60%, #0e141b 100%),
+                    url(${metadata.hero})
+                  `,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
                   display: 'flex',
@@ -201,7 +201,14 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
                   )}
                 </div>
               ) : (
-                <>
+                <div style={{
+                  width: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  color: 'white',
+                }}>
                   {gameName && (
 
                     <div style={{
@@ -209,12 +216,6 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
                       fontWeight: 'bold',
                       textAlign: 'center',
                       width: '100%',
-                      textShadow: `
-                        -3px -3px 7px #0e141b,
-                        3px -3px 7px #0e141b,
-                        -3px 3px 7px #0e141b,
-                        3px 3px 7px #0e141b
-                      `,
                     }}>
                       {gameName}
                     </div>
@@ -222,17 +223,11 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
                   {appId && (
                     <div style={{
                       fontSize: '11px',
-                      textShadow: `
-                        -2px -2px 10px #0e141b,
-                        2px -2px 10px #0e141b,
-                        -2px 2px 10px #0e141b,
-                        2px 2px 10px #0e141b
-                      `,
                     }}>
                       App ID: {appId}
                     </div>
                   )}
-                </>
+                </div>
               )}
               <hr style={{ marginTop: '5px', marginBottom: '5px' }} />
             </div>
