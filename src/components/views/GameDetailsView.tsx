@@ -16,6 +16,8 @@ import { fetchGameDataByAppId, fetchGameDataByGameName } from '../../hooks/deckV
 import { getPluginConfig } from '../../constants'
 // import { PanelSocialButton } from '../elements/SocialButton'
 import { TbBrandYoutubeFilled, TbReport } from 'react-icons/tb'
+import { hasToken } from '../../hooks/githubAuth'
+import { popupLoginDialog } from '../elements/LoginDialog'
 
 const deckVerifiedIconSrc = 'https://deckverified.games/deck-verified/assets/logo-dark-DRV01ZBg.png'
 
@@ -683,7 +685,16 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
                   marginRight: 'auto',
                   gap: '1rem',
                 }}
-                onClick={() => onChangePage('report_form')}>
+                onClick={() => {
+                  if (hasToken()) {
+                    onChangePage('report_form')
+                  } else {
+                    popupLoginDialog(() => {
+                      // If login succeeded and user closes the dialog, proceed
+                      if (hasToken()) onChangePage('report_form')
+                    })
+                  }
+                }}>
                 <TbReport fill="#FF5E5B" />
                 Add your own report
               </DialogButton>

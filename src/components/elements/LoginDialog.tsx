@@ -118,12 +118,7 @@ export const popupLoginDialog = (onCloseCallback = () => { }) => {
         </style>
 
         {step === 'waiting' && (
-          <div
-            style={{
-              margin: '8px 10px',
-              maxWidth: 520,
-            }}
-          >
+          <div>
             <p style={{ margin: '0 0 10px 0', opacity: 0.9 }}>
               Connect the Deck Settings plugin to your GitHub account to submit your own game reports directly from the
               plugin.
@@ -157,9 +152,8 @@ export const popupLoginDialog = (onCloseCallback = () => { }) => {
                 <QRCodeSVG value={verifyUrl} size={160} marginSize={4} />
               </div>
             </div>
-
             <div style={{ marginTop: 14 }}>
-              <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 6 }}>waiting for auth…</div>
+              <div style={{ fontSize: 12, opacity: 0.8, margin: '0 0 6px 1px' }}>waiting for auth…</div>
               <div
                 style={{
                   position: 'relative',
