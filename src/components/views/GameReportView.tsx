@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { PanelSection, Focusable, DialogButton, Navigation, Router } from '@decky/ui'
+import { PanelSection, Focusable, DialogButton, Navigation, Router, showModal } from '@decky/ui'
+import ImagePreviewModal from '../elements/ImagePreviewModal'
 import ReactMarkdown, { Components } from 'react-markdown'
 import { reportsWebsiteBaseUrl } from '../../constants'
 import type { ExternalReview, GameReport } from '../../interfaces'
@@ -21,12 +22,18 @@ export const extractYouTubeId = (url: string): string | null => {
 }
 
 interface GameReportViewProps {
-  gameReport: GameReport | ExternalReview | null;
-  onGoBack: () => void;
+  gameReport: GameReport | ExternalReview | null
+  onGoBack: () => void
 }
 
 const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack }) => {
   const [youTubeVideoId, setYouTubeVideoId] = useState<string | null>(null)
+  const [imageUrls, setImageUrls] = useState<string[]>([])
+
+  // Reset collected images when switching reports
+  useEffect(() => {
+    setImageUrls([])
+  }, [gameReport?.id])
 
   // Create mapping for react-markdown components with inline styles.
   const markdownComponents: Components = {
@@ -35,8 +42,14 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack })
     h2: 'h4',
     h3: 'h4',
     img(props) {
-      const { node, ...rest } = props as any
-      return <img {...rest} style={{ maxWidth: '100%', height: 'auto', display: 'block' }} />
+      const { src } = props as any
+      // Collect image URLs and do not render inline
+      useEffect(() => {
+        if (typeof src === 'string' && src.length > 0) {
+          setImageUrls(prev => (prev.includes(src) ? prev : [...prev, src]))
+        }
+      }, [src])
+      return null
     },
     a(props) {
       const { node, href, title, children, ...rest } = props
@@ -267,12 +280,12 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack })
           <>
             {gameReport && (
               <div className="game-report"
-                   style={{
-                     display: 'flex',
-                     alignItems: 'center',
-                     justifyContent: 'right',
-                     margin: '10px',
-                   }}>
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'right',
+                  margin: '10px',
+                }}>
                 {isExternalReview(gameReport) ? (
                   <>
                     <img
@@ -288,14 +301,14 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack })
                       fontSize: '14px',
                       lineHeight: '16px',
                     }}>
-                                            {gameReport.source.name}
-                                        </span>
+                      {gameReport.source.name}
+                    </span>
                   </>
                 ) : (
                   <>
                     <img src={gameReport.user.avatar_url}
-                         alt="User Avatar"
-                         style={{ height: '18px', marginLeft: '3px' }} />
+                      alt="User Avatar"
+                      style={{ height: '18px', marginLeft: '3px' }} />
                     <span style={{
                       padding: '0 0 3px 3px',
                       margin: 0,
@@ -304,8 +317,8 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack })
                       fontSize: '14px',
                       lineHeight: '16px',
                     }}>
-                                            {gameReport.user.login}
-                                        </span>
+                      {gameReport.user.login}
+                    </span>
                   </>
                 )}
               </div>
@@ -313,12 +326,12 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack })
 
             {youTubeVideoId && (
               <div className="game-report"
-                   style={{
-                     display: 'flex',
-                     alignItems: 'center',
-                     justifyContent: 'right',
-                     margin: '10px',
-                   }}>
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'right',
+                  margin: '10px',
+                }}>
                 <iframe
                   className="yt-embed"
                   src={`https://www.youtube.com/embed/${youTubeVideoId}?fs=0&controls=0`}
@@ -374,7 +387,7 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack })
                 <PanelSection title="Game Display Settings">
                   <div className="game-report-section-body">
                     <ReactMarkdown rehypePlugins={[rehypeSanitize]}
-                                   components={markdownComponents}>
+                      components={markdownComponents}>
                       {gameReport.data.game_display_settings || ''}
                     </ReactMarkdown>
                   </div>
@@ -388,7 +401,7 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack })
                 <PanelSection title="Game Graphics Settings">
                   <div className="game-report-section-body">
                     <ReactMarkdown rehypePlugins={[rehypeSanitize]}
-                                   components={markdownComponents}>
+                      components={markdownComponents}>
                       {gameReport.data.game_graphics_settings || ''}
                     </ReactMarkdown>
                   </div>
@@ -402,8 +415,8 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack })
                 <PanelSection title="Additional Notes">
                   <div className="game-report-section-body">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}
-                                   rehypePlugins={[rehypeSanitize]}
-                                   components={markdownComponents}>
+                      rehypePlugins={[rehypeSanitize]}
+                      components={markdownComponents}>
                       {gameReport.data.additional_notes || ''}
                     </ReactMarkdown>
                   </div>
@@ -411,10 +424,48 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack })
                 <hr />
               </div>
             )}
+
+            {imageUrls && imageUrls.length > 0 && (
+              <div>
+                {imageUrls.map((url) => (
+                  <button
+                    key={url}
+                    style={{
+                      padding: 0,
+                      margin: 0,
+                      background: 'transparent',
+                      border: 'none',
+                      display: 'block',
+                      width: '100%',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => {
+                      try {
+                        showModal(<ImagePreviewModal src={url} alt={'Image'} />)
+                      } catch { }
+                    }}
+                  >
+                    <img
+                      src={url}
+                      alt="Image"
+                      style={{
+                        display: 'block',
+                        maxWidth: '100%',
+                        height: 'auto',
+                        border: '1px solid #444',
+                        marginTop: '10px',
+                        marginBottom: '10px',
+                      }}
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
           </>
         </ScrollableWindowRelative>
         <div style={{ height: '32px' }} />
-        {/*  provide space for bottom banner */}
+        {/* provide space for bottom banner */}
       </Focusable>
     </>
   )
