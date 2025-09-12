@@ -15,9 +15,9 @@ import { SelectModal } from '../elements/SelectModal'
 import ReportSubmittedModal from '../elements/ReportSubmittedModal'
 
 interface CreateReportViewProps {
-  onGoBack: () => void;
-  defaultGameName?: string;
-  defaultAppId?: number;
+  onGoBack: () => void
+  defaultGameName?: string
+  defaultAppId?: number
 }
 
 
@@ -206,7 +206,7 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
         })
         push()
         setFormDef({ ...def, sections })
-        console.log(sections)
+        console.log(`[CreateReportView] Generated report form sections: ${JSON.stringify(sections)}`)
       } catch { }
 
       setValues(initial)
@@ -233,6 +233,11 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
     const key = makeDraftKey(values['game_name'], values['app_id'])
     removeReportFromState(key)
   }
+
+  // Persist draft when selected images change
+  useEffect(() => {
+    persistDraft()
+  }, [selectedImages])
 
   const handleClose = () => {
     persistDraft()
@@ -279,6 +284,7 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
     const finalDraft: Record<string, any> = { ...nextValues, images: selectedImages }
     let issueUrl: string | null = null
     try {
+      console.log(`[CreateReportView] Submitting report data: ${JSON.stringify(finalDraft)}`)
       issueUrl = await submitReportDraft(finalDraft, templateBody)
       setSubmitError(null)
     } catch (e: any) {
