@@ -64,8 +64,11 @@ export const submitReportDraft = async (payload: any, templateBody: any[]): Prom
     const body = buildIssueBodyFromTemplate(payload, templateBody, uploadedUrls)
     // 4) Create issue with placeholder title
     const title = "(Placeholder - Issue title will be automatically populated with the information provided below on submit)"
-    const issue: any = await createIssueWithBody(title, body)
-    const url: string | null = (issue && typeof issue.html_url === 'string') ? issue.html_url : (issue && typeof issue.url === 'string' ? issue.url : null)
+    const issue = await createIssueWithBody(title, body)
+    if (!issue || typeof issue.html_url !== 'string') {
+      throw new Error('Issue creation failed or missing html_url')
+    }
+    const url: string = issue.html_url
     return url
   } catch (e) {
     console.error('[deckVerifiedApi] submitReportDraft failed', e)
@@ -76,9 +79,9 @@ export const submitReportDraft = async (payload: any, templateBody: any[]): Prom
 // Upload images to repo and return raw URLs
 export async function uploadImagesFromBase64(imagesBase64: string[] = []): Promise<string[]> {
   if (!imagesBase64 || imagesBase64.length === 0) return []
-  const token = await ensureFreshToken();
-  if (!token) throw new Error('No GitHub token available');
-  const endpoint = 'https://asset-upload.deckverified.games/';
+  const token = await ensureFreshToken()
+  if (!token) throw new Error('No GitHub token available')
+  const endpoint = 'https://asset-upload.deckverified.games/'
   const res = await fetchNoCors(endpoint, {
     method: 'PUT',
     headers: {
@@ -86,16 +89,16 @@ export async function uploadImagesFromBase64(imagesBase64: string[] = []): Promi
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ images: imagesBase64 }),
-  });
+  })
   if (!res.ok) {
-    const txt = await res.text().catch(() => '');
-    throw new Error(`Asset upload failed (${res.status} ${res.statusText}): ${txt}`);
+    const txt = await res.text().catch(() => '')
+    throw new Error(`Asset upload failed (${res.status} ${res.statusText}): ${txt}`)
   }
-  const json: any = await res.json().catch(() => null);
-  const results: any[] = Array.isArray(json?.results) ? json.results : [];
+  const json: any = await res.json().catch(() => null)
+  const results: any[] = Array.isArray(json?.results) ? json.results : []
   return results
     .map((r) => (typeof r?.url === 'string' ? r.url : null))
-    .filter((u: string | null): u is string => !!u && u.startsWith('http'));
+    .filter((u: string | null): u is string => !!u && u.startsWith('http'))
 }
 
 // Build markdown from template body, mapping ids to labels; inject images under Game Display Settings
@@ -122,13 +125,20 @@ function buildIssueBodyFromTemplate(values: Record<string, any>, templateBody: a
 }
 
 // Create issue with provided body
-async function createIssueWithBody(title: string, body: string) {
-  const token = await ensureFreshToken();
-  if (!token) throw new Error('No GitHub token available');
-  return ghRequest(`/repos/${GH_REPORTS_OWNER}/${GH_REPORTS_REPO}/issues`, {
-    method: 'POST',
-    body: JSON.stringify({ title, body }),
-  }, token);
+interface GitHubIssue { html_url?: string }
+
+async function createIssueWithBody(title: string, body: string): Promise<GitHubIssue | null> {
+  const token = await ensureFreshToken()
+  if (!token) throw new Error('No GitHub token available')
+  try {
+    return await ghRequest<GitHubIssue>(`/repos/${GH_REPORTS_OWNER}/${GH_REPORTS_REPO}/issues`, {
+      method: 'POST',
+      body: JSON.stringify({ title, body }),
+    }, token)
+  } catch (e) {
+    console.error('[githubSubmitReport] createIssueWithBody failed', e)
+    return null
+  }
 }
 
 // Semd request to GH
@@ -141,10 +151,10 @@ async function ghRequest<T>(path: string, init: RequestInit, token: string): Pro
       Authorization: `Bearer ${token}`,
       ...(init.headers || {}),
     },
-  });
+  })
   if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error(`GitHub ${path} failed: ${res.status} ${res.statusText}\n${text}`);
+    const text = await res.text().catch(() => '')
+    throw new Error(`GitHub ${path} failed: ${res.status} ${res.statusText}\n${text}`)
   }
-  return res.json();
+  return res.json()
 }

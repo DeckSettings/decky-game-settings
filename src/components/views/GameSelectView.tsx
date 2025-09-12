@@ -46,7 +46,6 @@ const GameSelectView: React.FC<GameSelectViewProps> = ({ onGameSelect, onSearch,
 
   useEffect(() => {
     console.log(`[GameSelectView] Mounted`)
-    // noinspection JSIgnoredPromiseFromCall
     fetchInstalledGames()
   }, [])
 

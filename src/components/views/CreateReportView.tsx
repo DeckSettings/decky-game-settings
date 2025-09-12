@@ -212,7 +212,6 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
       setValues(initial)
       setFormReady(true)
     }
-    // noinspection JSIgnoredPromiseFromCall
     init()
   }, [])
 
