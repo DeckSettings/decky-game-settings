@@ -25,6 +25,7 @@ export interface SystemInfo {
   sVideoCardName: string
   sVideoDriverVersion: string
   sysVendor: string
+  isEMMCStorage: boolean
   [key: string]: any
 }
 
@@ -56,9 +57,13 @@ export const fetchSystemInfo = async (): Promise<SystemInfo | null> => {
 
     // Add additionaal information from python backend
     let sysVendorResp = ''
+    let isEmmc = false
     try {
       sysVendorResp = await call<[], string>('get_sys_vendor')
     } catch { sysVendorResp = '' }
+    try {
+      isEmmc = await call<[], boolean>('is_emmc_storage')
+    } catch { isEmmc = false }
 
     // Return nothing if nothing was able to be fetched
     if (!infoRaw || typeof infoRaw !== 'object') return null
@@ -88,6 +93,7 @@ export const fetchSystemInfo = async (): Promise<SystemInfo | null> => {
       sVideoCardName: normalise((infoRaw as any).sVideoCardName),
       sVideoDriverVersion: normalise((infoRaw as any).sVideoDriverVersion),
       sysVendor: normalise(sysVendorResp || (infoRaw as any).sSysVendor || (infoRaw as any).sysVendor),
+      isEMMCStorage: Boolean(isEmmc),
     }
 
     return info
@@ -124,45 +130,30 @@ export const inferOsVersionString = (info: SystemInfo | null): string | null => 
   return null
 }
 
-export const inferSteamDeckModel = (info: SystemInfo | null): string | null => {
-  if (!info || typeof info !== 'object') return null
-  const cpuName = info.sCPUName
-  if (cpuName.includes('AMD Custom APU 0932')) return 'steam-deck-oled'
-  if (cpuName.includes('AMD Custom APU 0405')) return 'steam-deck-lcd'
-  return null
-}
-
 export const inferDeviceLabel = (info: SystemInfo | null): string | null => {
   if (!info || typeof info !== 'object') return null
 
   // -- Steam Deck --
   // First try to detect Steam Deck models (The easy stuff...)
-  const model = inferSteamDeckModel(info)
-  if (model === 'steam-deck-oled') return 'Steam Deck OLED'
-  if (model === 'steam-deck-lcd') return 'Steam Deck LCD (256GB/512GB)'
-
-  // For everything else, we need to do some digging through the specs and BIOS verions...
-  const cpuName = info.sCPUName
-  const bios = info.sBIOSVersion
-  const sysVendor = info.sysVendor
+  if (/amd\s*custom\s*apu\s*0932/i.test(info.sCPUName)) return 'Steam Deck OLED'
+  if (/amd\s*custom\s*apu\s*0405/i.test(info.sCPUName)) {
+    return info.isEMMCStorage ? 'Steam Deck LCD (64GB)' : 'Steam Deck LCD (256GB/512GB)'
+  }
 
   // -- Lenovo Legion Go --
   // Legion Go: I'm guessing with this - I don't own a Lenovo device, but this should work...
-  if (sysVendor && /lenovo/i.test(sysVendor) && /z1\s*extreme/i.test(cpuName)) {
-    return 'Legion Go'
-  }
+  if (info.sysVendor && /lenovo/i.test(info.sysVendor) && /z1\s*extreme/i.test(info.sCPUName)) return 'Legion Go'
 
   // -- ASUS Devices --
   // Pretty sure this is right for ASUS ROG Ally models -> {"RC72LA": ["ROG Ally X"], "RC71L": ["ROG Ally Z1", "ROG Ally Z1 Extreme"]}
-  if (/rc72la/i.test(bios)) return 'ROG Ally X'
-  if (/rc71l/i.test(bios) && /z1\s*extreme/i.test(cpuName)) return 'ROG Ally Z1 Extreme'
-  if (/rc71l/i.test(bios)) return 'ROG Ally Z1'
-
+  if (/rc72la/i.test(info.sBIOSVersion)) return 'ROG Ally X'
+  if (/rc71l/i.test(info.sBIOSVersion) && /z1\s*extreme/i.test(info.sCPUName)) return 'ROG Ally Z1 Extreme'
+  if (/rc71l/i.test(info.sBIOSVersion)) return 'ROG Ally Z1'
 
   // -- The Cracks ¯\_(ツ)_/¯ --
   // If we have not detected any winners here, lets fall back to some defaults based only on CPU
-  if (/amd\s*ryzen\s*z1(?!\s*extreme)/i.test(cpuName)) return 'ROG Ally Z1'
-  if (/amd\s*ryzen\s*z1\s*extreme/i.test(cpuName)) return 'ROG Ally Z1 Extreme'
+  if (/amd\s*ryzen\s*z1(?!\s*extreme)/i.test(info.sCPUName)) return 'ROG Ally Z1'
+  if (/amd\s*ryzen\s*z1\s*extreme/i.test(info.sCPUName)) return 'ROG Ally Z1 Extreme'
 
   // This must be a new device - Let the user decide...
   return null

@@ -8,6 +8,7 @@ import mimetypes
 import decky
 import asyncio
 
+
 class Plugin:
     # A normal method. It can be called from the TypeScript side using @decky/api.
     async def add(self, left: int, right: int) -> int:
@@ -44,7 +45,7 @@ class Plugin:
         # Here's a migration example for logs:
         # - `~/.config/decky-template/template.log` will be migrated to `decky.decky_LOG_DIR/template.log`
         decky.migrate_logs(os.path.join(decky.DECKY_USER_HOME,
-                                               ".config", "decky-template", "template.log"))
+                                        ".config", "decky-template", "template.log"))
         # Here's a migration example for settings:
         # - `~/homebrew/settings/template.json` is migrated to `decky.decky_SETTINGS_DIR/template.json`
         # - `~/.config/decky-template/` all files and directories under this root are migrated to `decky.decky_SETTINGS_DIR/`
@@ -107,3 +108,38 @@ class Plugin:
             except Exception:
                 pass
             return ""
+
+    def _read_mounts(self):
+        try:
+            with open('/proc/self/mounts', 'r', encoding='utf-8', errors='ignore') as f:
+                for line in f:
+                    parts = line.split()
+                    if len(parts) >= 2:
+                        yield parts[0], parts[1]
+        except Exception:
+            return []
+
+    async def is_emmc_storage(self) -> bool:
+        """Simple check to determine if root/home is on eMMC (mmcblk) vs NVMe."""
+        try:
+            mounts = list(self._read_mounts())
+            # Prioritize common system mounts
+            priority = ['/', '/home', '/home/deck']
+            for target in priority:
+                for src, tgt in mounts:
+                    if tgt == target and src.startswith('/dev/'):
+                        return self._is_emmc_from_dev(src)
+            # Fallback: scan any /dev/* mount that looks like a block device
+            for src, tgt in mounts:
+                if src.startswith('/dev/'):
+                    name = os.path.basename(src)
+                    if name.startswith('mmcblk'):
+                        return True
+                    return False
+            return False
+        except Exception as e:
+            try:
+                decky.logger.warning(f"is_emmc_storage failed: {e}")
+            except Exception:
+                pass
+            return False
