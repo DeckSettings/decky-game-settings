@@ -10,7 +10,7 @@ import ReactMarkdown from 'react-markdown'
 import rehypeSanitize from 'rehype-sanitize'
 import { ImageSelectorModal } from '../elements/ImageSelectorModal'
 import { fetchScreenshotList } from '../../hooks/gameLibrary'
-import { fetchSystemInfo, inferOsVersionString, inferSteamDeckDeviceLabel } from '../../hooks/systemInfo'
+import { fetchSystemInfo, inferOsVersionString, inferDeviceLabel } from '../../hooks/systemInfo'
 import { SelectModal } from '../elements/SelectModal'
 import ReportSubmittedModal from '../elements/ReportSubmittedModal'
 
@@ -85,7 +85,7 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
           const osVer = inferOsVersionString(sysInfo)
           if (osVer) initial['os_version'] = osVer
           // Set the device
-          const inferredLabel = inferSteamDeckDeviceLabel(sysInfo)
+          const inferredLabel = inferDeviceLabel(sysInfo)
           if (inferredLabel) {
             const deviceItem = def?.template?.body?.find((x: any) => x?.id === 'device')
             const opts: string[] = deviceItem?.attributes?.options || []

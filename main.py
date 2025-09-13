@@ -94,3 +94,16 @@ class Plugin:
                 res = ""
             results.append(res)
         return results
+
+    async def get_sys_vendor(self) -> str:
+        """Return DMI system vendor from /sys/class/dmi/id/sys_vendor, or empty string on failure."""
+        path = "/sys/class/dmi/id/sys_vendor"
+        try:
+            with open(path, 'r', encoding='utf-8', errors='ignore') as f:
+                return f.read().strip()
+        except Exception as e:
+            try:
+                decky.logger.warning(f"get_sys_vendor failed: {e}")
+            except Exception:
+                pass
+            return ""

@@ -63,7 +63,7 @@ export const submitReportDraft = async (payload: any, templateBody: any[]): Prom
     // 3) Build markdown body with labels mapped from template and images under Game Display Settings
     const body = buildIssueBodyFromTemplate(payload, templateBody, uploadedUrls)
     // 4) Create issue with placeholder title
-    const title = "(Placeholder - Issue title will be automatically populated with the information provided below on submit)"
+    const title = "(Placeholder - Report submitted from Deck Settings Decky Plugin)"
     const issue = await createIssueWithBody(title, body)
     if (!issue || typeof issue.html_url !== 'string') {
       throw new Error('Issue creation failed or missing html_url')
