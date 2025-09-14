@@ -40,6 +40,13 @@ export const removeReportFromState = (key: string): void => {
   }
 }
 
+// Creates a key for storing the report form state
+export const makeDraftKey = (name?: string, appid?: string | number): string => {
+  const n = (name || '').toString().trim()
+  const a = (appid !== undefined && appid !== null && `${appid}`.trim() !== '') ? `${appid}`.trim() : 'no appid'
+  return `${n} [${a}]`
+}
+
 // Submit game report draft as Github Issue
 export const submitReportDraft = async (payload: any, templateBody: any[]): Promise<string | null> => {
   try {
@@ -63,7 +70,7 @@ export const submitReportDraft = async (payload: any, templateBody: any[]): Prom
     // 3) Build markdown body with labels mapped from template and images under Game Display Settings
     const body = buildIssueBodyFromTemplate(payload, templateBody, uploadedUrls)
     // 4) Create issue with placeholder title
-    const title = "(Placeholder - Report submitted from Deck Settings Decky Plugin)"
+    const title = "(Report submitted from Deck Settings Decky Plugin)"
     const issue = await createIssueWithBody(title, body)
     if (!issue || typeof issue.html_url !== 'string') {
       throw new Error('Issue creation failed or missing html_url')
@@ -76,8 +83,46 @@ export const submitReportDraft = async (payload: any, templateBody: any[]): Prom
   }
 }
 
+// Update an existing Github issue
+export const updateReportDraft = async (
+  payload: any,
+  templateBody: any[],
+  issueNumber: number
+): Promise<string | null> => {
+  try {
+    // 1) Convert local image paths to base64
+    const paths: string[] = Array.isArray(payload.images) ? payload.images : []
+    const toFs = (p: string) => (p?.startsWith('file://') ? p.replace(/^file:\/\//, '') : p)
+    const fsPaths = paths.map(toFs)
+    let base64List: string[] = []
+    try {
+      base64List = await call<[string[]], string[]>('get_images_as_base64', fsPaths)
+      base64List = Array.isArray(base64List) ? base64List.filter(Boolean) : []
+    } catch (e) {
+      console.error('[githubSubmitReport] get_images_as_base64 failed', e)
+      base64List = []
+    }
+    // 2) Upload images, get raw URLs.
+    //    As this is an update, we can ignore if no imgaes are bing uploaded. That is fine for edits.
+    const uploadedUrls = base64List.length > 0 ? await uploadImagesFromBase64(base64List) : []
+    // 3) Build markdown body with labels mapped from template and only newly uploaded images
+    const body = buildIssueBodyFromTemplate(payload, templateBody, uploadedUrls)
+    // 4) Update issue with new placeholder title
+    const title = "(Report updated from Deck Settings Decky Plugin)"
+    const issue = await updateIssueBody(title, body, issueNumber)
+    if (!issue || typeof issue.html_url !== 'string') {
+      throw new Error('Issue update failed or missing html_url')
+    }
+    const url: string = issue.html_url
+    return url
+  } catch (e) {
+    console.error('[deckVerifiedApi] updateReportDraft failed', e)
+    throw e
+  }
+}
+
 // Upload images to repo and return raw URLs
-export async function uploadImagesFromBase64(imagesBase64: string[] = []): Promise<string[]> {
+export const uploadImagesFromBase64 = async (imagesBase64: string[] = []): Promise<string[]> => {
   if (!imagesBase64 || imagesBase64.length === 0) return []
   const token = await ensureFreshToken()
   if (!token) throw new Error('No GitHub token available')
@@ -115,8 +160,10 @@ function buildIssueBodyFromTemplate(values: Record<string, any>, templateBody: a
     const label = item?.attributes?.label || id
     lines.push(`### ${label}\n\n`)
     if (id === 'game_display_settings') {
+      const text = valueOrNo(values[id])
+      if (text) lines.push(text + '\n\n')
       if (imagesMd) lines.push(imagesMd + '\n\n')
-      else lines.push('_No response_\n\n')
+      if (!text && !imagesMd) lines.push('_No response_\n\n')
     } else {
       lines.push(valueOrNo(values[id]) + '\n\n')
     }
@@ -137,6 +184,21 @@ async function createIssueWithBody(title: string, body: string): Promise<GitHubI
     }, token)
   } catch (e) {
     console.error('[githubSubmitReport] createIssueWithBody failed', e)
+    return null
+  }
+}
+
+// Update issue body (and optionally title)
+async function updateIssueBody(title: string, body: string, issueNumber: number): Promise<GitHubIssue | null> {
+  const token = await ensureFreshToken()
+  if (!token) throw new Error('No GitHub token available')
+  try {
+    return await ghRequest<GitHubIssue>(`/repos/${GH_REPORTS_OWNER}/${GH_REPORTS_REPO}/issues/${issueNumber}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ title, body }),
+    }, token)
+  } catch (e) {
+    console.error('[githubSubmitReport] updateIssueBody failed', e)
     return null
   }
 }

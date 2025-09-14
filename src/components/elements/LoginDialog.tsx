@@ -24,7 +24,7 @@ export const popupLoginDialog = (onCloseCallback = () => { }) => {
 
     // Start device flow
     useEffect(() => {
-      ; (async () => {
+      const startDeviceFlow = async () => {
         try {
           const d = await beginDeviceFlow()
           setDeviceCode(d.device_code)
@@ -36,7 +36,8 @@ export const popupLoginDialog = (onCloseCallback = () => { }) => {
           setMsg(e?.message || 'Failed to start GitHub login.')
           setStep('error')
         }
-      })()
+      }
+      startDeviceFlow()
     }, [])
 
     // Poll for token

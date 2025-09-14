@@ -18,7 +18,7 @@ import {
   hasToken as hasGithubToken,
   clearTokens as clearGithubTokens,
   GithubUserProfile,
-  loadUserProfile, clearUserProfile,
+  gitHubUserProfile, clearUserProfile,
 } from '../../hooks/githubAuth'
 
 interface PluginConfigViewProps {
@@ -30,7 +30,7 @@ const PluginConfigView: React.FC<PluginConfigViewProps> = ({ onGoBack }) => {
   const [currentConfig, setCurrentConfig] = useState(() => getPluginConfig())
   const [deviceList, setDeviceList] = useState<Devices[]>([])
   const [hasGithub, setHasGithub] = useState<boolean>(hasGithubToken())
-  const [ghProfile, setGhProfile] = useState<GithubUserProfile | null>(loadUserProfile())
+  const [ghProfile, setGhProfile] = useState<GithubUserProfile | null>(null)
 
 
   const updateDeviceList = async () => {
@@ -58,7 +58,11 @@ const PluginConfigView: React.FC<PluginConfigViewProps> = ({ onGoBack }) => {
   const openGithubLogin = () => {
     popupLoginDialog(() => {
       setHasGithub(hasGithubToken())
-      setGhProfile(loadUserProfile())
+      const fetchProfile = async () => {
+        const p = await gitHubUserProfile()
+        setGhProfile(p)
+      }
+      fetchProfile()
     })
   }
 
@@ -79,6 +83,11 @@ const PluginConfigView: React.FC<PluginConfigViewProps> = ({ onGoBack }) => {
   useEffect(() => {
     console.log(`[PluginConfigView] Mounted`)
     updateDeviceList()
+    const fetchProfile = async () => {
+      const p = await gitHubUserProfile()
+      setGhProfile(p)
+    }
+    fetchProfile()
   }, [])
 
   return (

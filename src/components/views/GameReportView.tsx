@@ -4,6 +4,9 @@ import ImagePreviewModal from '../elements/ImagePreviewModal'
 import ReactMarkdown, { Components } from 'react-markdown'
 import { reportsWebsiteBaseUrl } from '../../constants'
 import type { ExternalReview, GameReport } from '../../interfaces'
+import { gitHubUserProfile, hasToken } from '../../hooks/githubAuth'
+import { popupLoginDialog } from '../elements/LoginDialog'
+import { makeDraftKey, saveReportFormState } from '../../hooks/githubSubmitReport'
 import { ScrollableWindowRelative } from '../elements/ScrollableWindow'
 import { MdArrowBack, MdWeb } from 'react-icons/md'
 import remarkGfm from 'remark-gfm'
@@ -24,16 +27,62 @@ export const extractYouTubeId = (url: string): string | null => {
 interface GameReportViewProps {
   gameReport: GameReport | ExternalReview | null
   onGoBack: () => void
+  onRequestEdit?: () => void
 }
 
-const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack }) => {
+const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, onRequestEdit }) => {
   const [youTubeVideoId, setYouTubeVideoId] = useState<string | null>(null)
   const [imageUrls, setImageUrls] = useState<string[]>([])
+  const [isOwner, setIsOwner] = useState<boolean>(false)
 
   // Reset collected images when switching reports
   useEffect(() => {
     setImageUrls([])
   }, [gameReport?.id])
+
+  // Determine if current logged-in user owns this report
+  useEffect(() => {
+    const checkOwnership = async () => {
+      const profile = await gitHubUserProfile()
+      if (!profile || !gameReport) {
+        setIsOwner(false)
+        return
+      }
+      if (isExternalReview(gameReport)) {
+        setIsOwner(profile.login === gameReport.source.name)
+      } else {
+        setIsOwner(profile.login === gameReport.user.login)
+      }
+    }
+    checkOwnership()
+  }, [gameReport])
+
+  const saveDraftFromReport = () => {
+    if (!gameReport || isExternalReview(gameReport)) return
+    const data = gameReport.data as any
+    const key = makeDraftKey(data.game_name, data.app_id)
+    // Prefer API-provided GitHub issue number with fallback to parsing html_url. number was only just added
+    // TODO: Remove this and only use gameReport.number in future (once remote API cache is gone)
+    let issueNumber: number | null = null
+    if (typeof (gameReport as any).number === 'number' && Number.isFinite((gameReport as any).number)) {
+      issueNumber = (gameReport as any).number as number
+    } else if (typeof (gameReport as any).html_url === 'string') {
+      const m = (gameReport as any).html_url.match(/\/issues\/(\d+)/)
+      if (m && m[1]) {
+        const n = Number(m[1])
+        issueNumber = Number.isFinite(n) ? n : null
+      }
+    }
+    const draft: Record<string, any> = {
+      ...Object.entries(data).reduce((acc: Record<string, any>, [k, v]) => {
+        if (v !== null && v !== undefined) acc[k] = v
+        return acc
+      }, {}),
+      __editing_issue_number: issueNumber,
+      __editing_issue_title: gameReport.title,
+    }
+    saveReportFormState(key, draft)
+  }
 
   // Create mapping for react-markdown components with inline styles.
   const markdownComponents: Components = {
@@ -266,6 +315,47 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack })
         <hr />
       </div>
 
+      {gameReport && !isExternalReview(gameReport) && isOwner && (
+        <div style={{
+          margin: 0,
+          paddingLeft: '5px',
+          paddingRight: '5px',
+          paddingTop: '5px',
+          paddingBottom: 0,
+          overflow: 'hidden',
+        }}>
+          <DialogButton
+            style={{
+              width: '90%',
+              minWidth: 0,
+              padding: '3px',
+              fontSize: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginLeft: 'auto',
+              marginRight: 'auto',
+              gap: '1rem',
+            }}
+            onClick={() => {
+              const proceed = () => {
+                saveDraftFromReport()
+                if (onRequestEdit) onRequestEdit()
+              }
+              if (hasToken()) {
+                proceed()
+              } else {
+                popupLoginDialog(() => {
+                  // If login succeeded and user closes the dialog, proceed
+                  if (hasToken()) proceed()
+                })
+              }
+            }}
+          >
+            Edit this report
+          </DialogButton>
+        </div>
+      )}
 
       <Focusable
         style={{

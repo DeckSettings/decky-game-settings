@@ -48,6 +48,7 @@ export interface GameMetadata {
 
 export interface GameReport {
   id: number;
+  number: number;
   title: string;
   html_url: string;
   data: GameReportData;

@@ -103,6 +103,7 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
         <GameReportView
           gameReport={selectedReport}
           onGoBack={() => setSelectedReport(null)}
+          onRequestEdit={() => onChangePage('report_form')}
         />
       ) : (
         <>

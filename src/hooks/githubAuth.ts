@@ -56,8 +56,24 @@ export const loadUserProfile = (): GithubUserProfile | null => {
 }
 export const clearUserProfile = () => localStorage.removeItem(ghProfileKey)
 
+export const gitHubUserProfile = async (): Promise<GithubUserProfile | null> => {
+  const t = loadTokens()
+  // Only return a profile if we have a GitHub login
+  if (!t?.access_token) {
+    return null
+  }
+  // Fetch currently stored profile
+  const profile = loadUserProfile()
+  if (profile) {
+    return profile
+  }
+  // Fetch profile from token and store it, then return it
+  const fetchedProfile = await fetchUserProfile(t?.access_token)
+  saveUserProfile(fetchedProfile)
+  return fetchedProfile
+}
 
-export async function fetchUserProfile(access_token: string): Promise<GithubUserProfile> {
+export const fetchUserProfile = async (access_token: string): Promise<GithubUserProfile> => {
   const res = await fetchNoCors('https://api.github.com/user', {
     method: 'GET',
     headers: {
@@ -68,6 +84,7 @@ export async function fetchUserProfile(access_token: string): Promise<GithubUser
   })
   if (!res.ok) throw new Error(`fetchUserProfile failed: ${res.status} ${res.statusText}`)
   const u = await res.json()
+  console.log(u)
   return {
     login: u.login,
     avatar_url: u.avatar_url,
@@ -76,8 +93,7 @@ export async function fetchUserProfile(access_token: string): Promise<GithubUser
   }
 }
 
-
-export async function beginDeviceFlow() {
+export const beginDeviceFlow = async () => {
   const body = new URLSearchParams({ client_id: GITHUB_APP_CLIENT_ID })
   const res = await fetchNoCors('https://github.com/login/device/code', {
     method: 'POST',
@@ -94,7 +110,7 @@ export async function beginDeviceFlow() {
   }>
 }
 
-export async function pollOnce(device_code: string) {
+export const pollOnce = async (device_code: string) => {
   const body = new URLSearchParams({
     client_id: GITHUB_APP_CLIENT_ID,
     device_code,
@@ -109,7 +125,7 @@ export async function pollOnce(device_code: string) {
   return res.json()
 }
 
-export async function refreshToken(refresh_token: string): Promise<TokenBundle> {
+export const refreshToken = async (refresh_token: string): Promise<TokenBundle> => {
   const body = new URLSearchParams({
     client_id: GITHUB_APP_CLIENT_ID,
     grant_type: 'refresh_token',
@@ -124,7 +140,7 @@ export async function refreshToken(refresh_token: string): Promise<TokenBundle> 
   return res.json()
 }
 
-export async function ensureFreshToken(): Promise<string | null> {
+export const ensureFreshToken = async (): Promise<string | null> => {
   const t = loadTokens()
   if (!t?.access_token) return null
   const now = Date.now()

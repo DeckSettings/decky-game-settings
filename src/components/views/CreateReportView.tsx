@@ -1,11 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { DialogButton, Focusable, PanelSection, PanelSectionRow, ToggleField, SliderField, showModal } from '@decky/ui'
 import { MdArrowBack } from 'react-icons/md'
 import { getGamesList } from '../../hooks/gameLibrary'
 import type { ReportDraft } from '../../interfaces'
 import { TextFieldModal } from '../elements/TextFieldModal'
 import { fetchReportFormDefinition } from '../../hooks/deckVerifiedApi'
-import { loadReportFormStates, saveReportFormState, submitReportDraft, removeReportFromState } from '../../hooks/githubSubmitReport'
+import { loadReportFormStates, saveReportFormState, submitReportDraft, removeReportFromState, updateReportDraft, makeDraftKey } from '../../hooks/githubSubmitReport'
 import ReactMarkdown from 'react-markdown'
 import rehypeSanitize from 'rehype-sanitize'
 import { ImageSelectorModal } from '../elements/ImageSelectorModal'
@@ -28,6 +28,16 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
   const [selectedImages, setSelectedImages] = useState<string[]>([])
   const [formReady, setFormReady] = useState<boolean>(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [editingIssueNumber, setEditingIssueNumber] = useState<number | null>(null)
+
+  // Refs to capture latest values for unmount cleanup - Not sure if there is a simpler way to do this...
+  const valuesRef = useRef(values)
+  const imagesRef = useRef(selectedImages)
+  const editingRef = useRef(editingIssueNumber)
+  const closedViaButtonRef = useRef(false)
+  useEffect(() => { valuesRef.current = values }, [values])
+  useEffect(() => { imagesRef.current = selectedImages }, [selectedImages])
+  useEffect(() => { editingRef.current = editingIssueNumber }, [editingIssueNumber])
 
   // Fetch dynamic form definition and initialize values
   useEffect(() => {
@@ -75,7 +85,10 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
           if (typeof v === 'string' || typeof v === 'number') initial[k] = String(v)
         })
         if (Array.isArray(saved.images)) setSelectedImages(saved.images as string[])
+        if (typeof saved.__editing_issue_number === 'number') setEditingIssueNumber(saved.__editing_issue_number)
       }
+      // Determine editing mode from saved draft synchronously to avoid async state race
+      const isEditing = typeof (saved?.__editing_issue_number) === 'number'
 
       // Apply system parsed overrides
       try {
@@ -105,35 +118,43 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
         const body: any[] = def?.template?.body || []
         const sections: any[] = []
         let current: any | null = null
-        let inGame = false
-        let isPerf = false
+        let currentSection = ""
 
         const push = () => { if (current) sections.push(current); current = null }
 
         body.forEach((item: any) => {
+          // Override markdown text for some sections
           if (item.type === 'markdown') {
             const text: string = item?.attributes?.value || ''
             const isInGame = /##\s*In-Game Settings/i.test(text)
             const isAdditional = /##\s*Additional Notes/i.test(text)
-            isPerf = /##\s*SteamOS Performance Settings/i.test(text)
-            inGame = isInGame
+            const isPerf = /##\s*SteamOS Performance Settings/i.test(text)
+            if (isInGame) currentSection = "In-Game Settings"
+            if (isAdditional) currentSection = "*Additional Notes"
+            if (isPerf) currentSection = "SteamOS Performance Settings"
             push()
             current = {
               markdown: isInGame ? '## In-Game Settings' : (isAdditional ? '## Additional Notes' : text),
               fields: [] as any[],
             }
-            if (isInGame) {
+            return
+          }
+
+          // Add special cases for game_display_settings and game_graphics_settings
+          if (item.id === 'game_display_settings' || item.id === 'game_graphics_settings') {
+            if (!isEditing && item.id === 'game_display_settings') {
               current.fields.push({
                 type: 'image_select',
                 id: 'game_display_settings',
                 attributes: { label: 'Game Display Settings', description: 'Upload screenshots of your in-game settings.' },
               })
+              return
             }
-            return
+            if (!isEditing && item.id === 'game_graphics_settings') {
+              // Hide game_graphics_settings for initial submits as only screenshots will be used
+              return
+            }
           }
-
-          // Skip replaced textareas in In-Game section
-          if (inGame && (item.id === 'game_display_settings' || item.id === 'game_graphics_settings')) return
 
           // Seed defaults
           if ((item.type === 'input' || item.type === 'textarea') && item.id && item.attributes?.value && !initial[item.id]) {
@@ -147,7 +168,7 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
 
           // Transform per rules
           let transformed: any = { ...item }
-          if (isPerf) {
+          if (currentSection === "SteamOS Performance Settings") {
             // Strip descriptions in performance section
             if (transformed?.attributes) transformed.attributes = { ...transformed.attributes, description: undefined }
             // Convert performance inputs to sliders
@@ -203,6 +224,18 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
           }
           if (!current) current = { markdown: '', fields: [] }
           current.fields.push(transformed)
+          // If editing and we are in Additional Notes, append an image selector after the notes textarea
+          if (
+            isEditing &&
+            item.type === 'textarea' &&
+            (item.id === 'additional_notes')
+          ) {
+            current.fields.push({
+              type: 'image_select',
+              id: 'additional_screenshots',
+              attributes: { label: 'Additional Screenshots' },
+            })
+          }
         })
         push()
         setFormDef({ ...def, sections })
@@ -215,12 +248,6 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
     init()
   }, [])
 
-  const makeDraftKey = (name?: string, appid?: string | number): string => {
-    const n = (name || '').toString().trim()
-    const a = (appid !== undefined && appid !== null && `${appid}`.trim() !== '') ? `${appid}`.trim() : 'no appid'
-    return `${n} [${a}]`
-  }
-
   const persistDraft = (overrideValues?: Record<string, string>) => {
     const v = overrideValues ?? values
     const key = makeDraftKey(v['game_name'], v['app_id'])
@@ -228,8 +255,9 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
     saveReportFormState(key, draft)
   }
 
-  const clearDraft = () => {
-    const key = makeDraftKey(values['game_name'], values['app_id'])
+  const clearDraft = (overrideValues?: Record<string, string>) => {
+    const v = overrideValues ?? values
+    const key = makeDraftKey(v['game_name'], v['app_id'])
     removeReportFromState(key)
   }
 
@@ -239,9 +267,31 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
   }, [selectedImages])
 
   const handleClose = () => {
-    persistDraft()
+    closedViaButtonRef.current = true // This flag just prevents double-running in unmount cleanup
+    if (editingIssueNumber) {
+      // Clear out draft data if this was an edit
+      clearDraft()
+    } else {
+      persistDraft()
+    }
     onGoBack()
   }
+
+  // On unmount persist or clear draft
+  useEffect(() => {
+    return () => {
+      // Do nothing if we closed via the button...
+      if (closedViaButtonRef.current) return
+      try {
+        if (editingRef.current) {
+          // Clear out draft data if this was an edit
+          clearDraft(valuesRef.current)
+        } else {
+          persistDraft(valuesRef.current)
+        }
+      } catch { }
+    }
+  }, [])
 
   const handleSubmit = async () => {
     if (!formDef) return
@@ -250,8 +300,10 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
     // Ensure missing items are present as empty strings
     const nextValues: Record<string, string> = { ...values }
     // Special-case: treat screenshots as satisfying game_display_settings
-    if (Array.isArray(selectedImages) && selectedImages.length > 0) {
-      try { nextValues['game_display_settings'] = JSON.stringify(selectedImages) } catch { nextValues['game_display_settings'] = selectedImages.join('\n') }
+    if (!editingIssueNumber) {
+      if (Array.isArray(selectedImages) && selectedImages.length > 0) {
+        try { nextValues['game_display_settings'] = JSON.stringify(selectedImages) } catch { nextValues['game_display_settings'] = selectedImages.join('\n') }
+      }
     }
     items.forEach((it: any) => {
       if (nextValues[it.id] === undefined || nextValues[it.id] === null) nextValues[it.id] = ''
@@ -260,7 +312,7 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
     const newErrors: Record<string, string> = {}
     let ok = true
     items.forEach((it: any) => {
-      if (it.id === 'game_display_settings') {
+      if (!editingIssueNumber && it.id === 'game_display_settings') {
         const hasImages = Array.isArray(selectedImages) && selectedImages.length > 0
         const err = hasImages ? '' : validate(it, nextValues[it.id] ?? '')
         if (err) ok = false
@@ -279,12 +331,17 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
       return
     }
     setSubmitError(null)
-    // Build final draft and submit
+    // Build final draft and submit or update
     const finalDraft: Record<string, any> = { ...nextValues, images: selectedImages }
     let issueUrl: string | null = null
     try {
-      console.log(`[CreateReportView] Submitting report data: ${JSON.stringify(finalDraft)}`)
-      issueUrl = await submitReportDraft(finalDraft, templateBody)
+      if (editingIssueNumber) {
+        console.log(`[CreateReportView] Updating issue #${editingIssueNumber} with data: ${JSON.stringify(finalDraft)}`)
+        issueUrl = await updateReportDraft(finalDraft, templateBody, editingIssueNumber)
+      } else {
+        console.log(`[CreateReportView] Submitting report data: ${JSON.stringify(finalDraft)}`)
+        issueUrl = await submitReportDraft(finalDraft, templateBody)
+      }
       setSubmitError(null)
     } catch (e: any) {
       const msg = (e?.message && typeof e.message === 'string') ? e.message : 'Submission failed. Please try again.'
@@ -382,7 +439,7 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
         <hr />
       </div>
 
-      <PanelSection title="Create Report">
+      <PanelSection title={editingIssueNumber ? 'Edit Report' : 'Create Report'}>
         {!formReady ? (
           <PanelSection spinner title="Loading form..." />
         ) : null}
@@ -559,6 +616,8 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
                   }
 
                   const isAdditionalNotesField = item.type === 'textarea' && item.id === 'additional_notes'
+                  const isInGameTextarea = item.type === 'textarea' && (item.id === 'game_display_settings' || item.id === 'game_graphics_settings')
+                  const isMultilineField = isAdditionalNotesField || (editingIssueNumber ? isInGameTextarea : false)
                   elements.push(
                     <div style={{ padding: "3px 0" }}>
                       <PanelSectionRow key={`row-${item.id}-${sIdx}-${idx}`}>
@@ -572,13 +631,13 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
                               <TextFieldModal
                                 label={label}
                                 initialValue={current}
-                                multiline={isAdditionalNotesField}
-                                rows={isAdditionalNotesField ? 5 : 1}
+                                multiline={isMultilineField}
+                                rows={isMultilineField ? 5 : 1}
                                 onClosed={(val) => setField(item, val)}
                               />,
                             )}
                           >
-                            <div style={{ fontSize: '11px', opacity: 0.8 }}>{current || (isAdditionalNotesField ? 'Tap to enter additional notes' : 'Tap to enter')}</div>
+                            <div style={{ fontSize: '11px', opacity: 0.8, overflow: 'hidden' }}>{current || (isAdditionalNotesField ? 'Tap to enter additional notes' : 'Tap to enter')}</div>
                           </DialogButton>
                           {err ? <div style={{ fontSize: '10px', color: 'orangered', marginTop: '2px' }}>{err}</div> : null}
                           {item?.attributes?.description ? (
@@ -601,7 +660,7 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
               <PanelSectionRow>
                 <Focusable flow-children="horizontal" style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
                   <DialogButton onClick={handleSubmit} style={{ padding: '8px 12px', marginRight: '16px', fontSize: '12px' }}>
-                    Submit
+                    {editingIssueNumber ? 'Update' : 'Submit'}
                   </DialogButton>
                 </Focusable>
               </PanelSectionRow>
