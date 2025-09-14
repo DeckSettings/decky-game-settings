@@ -353,7 +353,7 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
                   }
                 }}
               >
-                <TbReport fill="#FF5E5B" />
+                <TbReport fill="#FF5E5E" />
                 Edit this report
               </DialogButton>
             </div>

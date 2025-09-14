@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { DialogButton, Focusable, PanelSection, PanelSectionRow, ToggleField, SliderField, showModal } from '@decky/ui'
-import { MdArrowBack } from 'react-icons/md'
+import { MdArrowBack, MdSend, MdUpdate, MdImage } from 'react-icons/md'
 import { getGamesList } from '../../hooks/gameLibrary'
 import type { ReportDraft } from '../../interfaces'
 import { TextFieldModal } from '../elements/TextFieldModal'
@@ -401,7 +401,7 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
   }
 
   const centeredRowStyle: React.CSSProperties = {
-    width: '90%',
+    width: '100%',
     padding: '4px',
     fontSize: '12px',
     display: 'flex',
@@ -478,36 +478,39 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
                   if (type === 'image_select') {
                     elements.push(
                       <PanelSectionRow key={`imgsel-${sIdx}-${idx}`}>
-                        <DialogButton
-                          style={centeredRowStyle}
-                          onClick={async () => {
-                            try {
-                              const imgs = await fetchScreenshotList()
-                              showModal(
-                                <ImageSelectorModal
-                                  images={imgs}
-                                  initialSelected={selectedImages}
-                                  onClosed={(sel) => setSelectedImages(sel)}
-                                />,
-                              )
-                            } catch {
-                              showModal(
-                                <ImageSelectorModal
-                                  images={[]}
-                                  initialSelected={selectedImages}
-                                  onClosed={(sel) => setSelectedImages(sel)}
-                                />,
-                              )
-                            }
-                          }}
-                        >
-                          <div>
-                            <div style={{ fontWeight: 600 }}>Select screenshots</div>
-                            <div style={{ fontSize: '12px', opacity: 0.8 }}>
-                              {selectedImages.length > 0 ? `${selectedImages.length} selected` : 'Tap to choose images'}
+                        <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                          <MdImage style={{ fontSize: '1.5em', marginRight: '.5em', opacity: 0.85 }} fill="#33AA50" />
+                          <DialogButton
+                            style={{ ...centeredRowStyle, marginLeft: '10px', paddingTop: '4px', paddingBottom: '4px', paddingLeft: '16px' }}
+                            onClick={async () => {
+                              try {
+                                const imgs = await fetchScreenshotList()
+                                showModal(
+                                  <ImageSelectorModal
+                                    images={imgs}
+                                    initialSelected={selectedImages}
+                                    onClosed={(sel) => setSelectedImages(sel)}
+                                  />,
+                                )
+                              } catch {
+                                showModal(
+                                  <ImageSelectorModal
+                                    images={[]}
+                                    initialSelected={selectedImages}
+                                    onClosed={(sel) => setSelectedImages(sel)}
+                                  />,
+                                )
+                              }
+                            }}
+                          >
+                            <div>
+                              <div style={{ fontWeight: 600 }}>Select screenshots</div>
+                              <div style={{ fontSize: '12px', opacity: 0.8 }}>
+                                {selectedImages.length > 0 ? `${selectedImages.length} selected` : 'Tap to choose images'}
+                              </div>
                             </div>
-                          </div>
-                        </DialogButton>
+                          </DialogButton>
+                        </div>
                       </PanelSectionRow>,
                     )
                     return
@@ -586,7 +589,7 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
                       <div style={{ padding: "3px 0" }}>
                         <PanelSectionRow key={`row-${item.id}-${sIdx}-${idx}`}>
                           <div style={{ ...centeredRowStyle, padding: 0, display: 'block' }}>
-                            <div style={{ fontWeight: 600, fontSize: '13px', padding: '6px 6px 2px 0' }}>
+                            <div style={{ fontWeight: 600, fontSize: '13px', padding: '6px 6px 3px 0' }}>
                               {label} {required ? <span style={{ color: 'orangered' }}>*</span> : null}
                             </div>
                             <DialogButton
@@ -622,7 +625,7 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
                     <div style={{ padding: "3px 0" }}>
                       <PanelSectionRow key={`row-${item.id}-${sIdx}-${idx}`}>
                         <div style={{ width: '100%', padding: 0 }}>
-                          <div style={{ fontWeight: 600, fontSize: '13px' }}>
+                          <div style={{ fontWeight: 600, fontSize: '13px', padding: '6px 6px 3px 0' }}>
                             {label} {required ? <span style={{ color: 'orangered' }}>*</span> : null}
                           </div>
                           <DialogButton
@@ -651,25 +654,41 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
               })
               return elements
             })()}
-            {/* Submit area */}
+
             <div style={{ padding: '8px 16px 8px 0' }}>
               <div style={{ color: 'orangered', fontSize: '12px', marginBottom: '6px', display: submitError ? 'visible' : 'hidden' }}>{submitError}</div>
-              {/* {submitError ? (
-                <div style={{ color: 'orangered', fontSize: '12px', marginBottom: '6px' }}>{submitError}</div>
-              ) : null} */}
-              <PanelSectionRow>
-                <Focusable flow-children="horizontal" style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
-                  <DialogButton onClick={handleSubmit} style={{ padding: '8px 12px', marginRight: '16px', fontSize: '12px' }}>
-                    {editingIssueNumber ? 'Update' : 'Submit'}
-                  </DialogButton>
-                </Focusable>
-              </PanelSectionRow>
             </div>
           </>
         ) : null}
       </PanelSection>
-      <div style={{ height: '32px' }} />
-      {/*  provide space for bottom banner */}
+
+      <div style={{
+        margin: 0,
+        paddingLeft: '16px',
+        paddingRight: '16px',
+        paddingTop: '3px',
+        paddingBottom: '3px',
+        overflow: 'hidden',
+      }}>
+
+        <DialogButton
+          style={{
+            width: '100%',
+            minWidth: 0,
+            padding: '3px',
+            fontSize: '14px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginLeft: 'auto',
+            marginRight: 'auto',
+            gap: '0.5rem',
+          }}
+          onClick={handleSubmit} >
+          {editingIssueNumber ? <MdUpdate fill="#FF5E5E" /> : <MdSend fill="#FF5E5E" />}
+          {editingIssueNumber ? 'Update' : 'Submit'}
+        </DialogButton>
+      </div>
     </>
   )
 }

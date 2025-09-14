@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import {
-  ButtonItem,
   DialogButton,
   Focusable,
   Navigation,
@@ -11,7 +10,7 @@ import {
 import GameReportView from './GameReportView'
 import { formatMinutes, hasYoutubeLink, reportsWebsiteBaseUrl } from '../../constants'
 import type { ExternalReview, GameMetadata, GameReport, PluginPage } from '../../interfaces'
-import { MdArrowBack, MdWeb } from 'react-icons/md'
+import { MdArrowBack, MdWeb, MdVisibility } from 'react-icons/md'
 import { fetchGameDataByAppId, fetchGameDataByGameName } from '../../hooks/deckVerifiedApi'
 import { getPluginConfig } from '../../constants'
 // import { PanelSocialButton } from '../elements/SocialButton'
@@ -158,6 +157,7 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
               {metadata && metadata.hero ? (
                 <div style={{
                   width: '100%',
+                  paddingBottom: '5px',
                   background: `
                     linear-gradient(to right, #0e141b 0%, transparent 20%, transparent 80%, #0e141b 100%),
                     linear-gradient(to bottom, #0e141b 0%, transparent 40%, transparent 60%, #0e141b 100%),
@@ -204,6 +204,7 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
               ) : (
                 <div style={{
                   width: '100%',
+                  paddingBottom: '5px',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'center',
@@ -267,9 +268,9 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
                   </div>
 
                   <div style={{
-                    padding: '0px 0px 0px 3px',
+                    padding: 0,
                     margin: 0,
-                    borderLeft: 'thin dotted',
+                    borderLeft: 'thin outset',
                   }}>
 
                     {filteredReports.length > 0 && (
@@ -283,7 +284,6 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
                               width: '100%',
                               fontSize: '14px',
                               lineHeight: '16px',
-                              margin: '0 0 10px 0',
                             }}>
                               <img src={gameReport.user.avatar_url}
                                 alt="Deck Verified Site Logo"
@@ -306,9 +306,9 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
 
                             <PanelSectionRow key={`${gameReport.id}`}>
                               <div style={{
-                                padding: '5px',
+                                padding: '0 0 5px 3px',
                                 margin: '0px 0px 10px 0px',
-                                border: 'thin outset',
+                                borderBottom: 'thin outset',
                               }}>
                                 <ul style={{
                                   listStyle: 'none',
@@ -413,22 +413,33 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
                                     </li>
                                   )}
                                 </ul>
+
                                 <div style={{
                                   margin: 0,
-                                  paddingLeft: '5px',
-                                  paddingRight: '5px',
-                                  paddingTop: 0,
-                                  paddingBottom: 0,
+                                  paddingLeft: '3px',
+                                  paddingRight: 0,
+                                  paddingTop: '3px',
+                                  paddingBottom: '3px',
                                   overflow: 'hidden',
                                 }}>
-                                  <ButtonItem
-                                    bottomSeparator="none"
-                                    layout="below"
-                                    key={gameReport.id}
+                                  <DialogButton
+                                    style={{
+                                      width: '100%',
+                                      minWidth: 0,
+                                      padding: '3px',
+                                      fontSize: '14px',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      marginLeft: 'auto',
+                                      marginRight: 'auto',
+                                      gap: '1rem',
+                                    }}
                                     onClick={() => handleReportSelect(gameReport)}
                                   >
+                                    <MdVisibility color="#5FB0FF" />
                                     View Report
-                                  </ButtonItem>
+                                  </DialogButton>
                                 </div>
                               </div>
 
@@ -491,9 +502,9 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
                   </div>
 
                   <div style={{
-                    padding: '0px 0px 0px 3px',
+                    padding: 0,
                     margin: 0,
-                    borderLeft: 'thin dotted',
+                    borderLeft: 'thin outset',
                   }}>
                     {externalReviews.length > 0 && (
                       <>
@@ -506,7 +517,6 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
                               width: '100%',
                               fontSize: '14px',
                               lineHeight: '16px',
-                              margin: '0 0 10px 0',
                             }}>
                               <img src={review.source.avatar_url}
                                 alt="Deck Verified Site Logo"
@@ -528,9 +538,9 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
 
                             <PanelSectionRow key={`${review.id}`}>
                               <div style={{
-                                padding: '5px',
+                                padding: '0 0 5px 3px',
                                 margin: '0px 0px 10px 0px',
-                                border: 'thin outset',
+                                borderBottom: 'thin outset',
                               }}>
                                 <ul style={{
                                   listStyle: 'none',
@@ -637,21 +647,32 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
                                 </ul>
                                 <div style={{
                                   margin: 0,
-                                  paddingLeft: '5px',
-                                  paddingRight: '5px',
-                                  paddingTop: 0,
-                                  paddingBottom: 0,
+                                  paddingLeft: '3px',
+                                  paddingRight: 0,
+                                  paddingTop: '3px',
+                                  paddingBottom: '3px',
                                   overflow: 'hidden',
                                 }}>
-                                  <ButtonItem
-                                    bottomSeparator="none"
-                                    layout="below"
-                                    key={review.id}
+                                  <DialogButton
+                                    style={{
+                                      width: '100%',
+                                      minWidth: 0,
+                                      padding: '3px',
+                                      fontSize: '14px',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      marginLeft: 'auto',
+                                      marginRight: 'auto',
+                                      gap: '1rem',
+                                    }}
                                     onClick={() => handleReportSelect(review)}
                                   >
+                                    <MdVisibility color="#5FB0FF" />
                                     View Details
-                                  </ButtonItem>
+                                  </DialogButton>
                                 </div>
+
                               </div>
 
                             </PanelSectionRow>
@@ -681,16 +702,16 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
 
             <div style={{
               margin: 0,
-              paddingLeft: '5px',
-              paddingRight: '5px',
-              paddingTop: '5px',
-              paddingBottom: 0,
+              paddingLeft: '10px',
+              paddingRight: '10px',
+              paddingTop: '3px',
+              paddingBottom: '3px',
               overflow: 'hidden',
             }}>
 
               <DialogButton
                 style={{
-                  width: '90%',
+                  width: '100%',
                   minWidth: 0,
                   padding: '3px',
                   fontSize: '14px',
@@ -711,7 +732,7 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
                     })
                   }
                 }}>
-                <TbReport fill="#FF5E5B" />
+                <TbReport fill="#FF5E5E" />
                 Add your own report
               </DialogButton>
             </div>
