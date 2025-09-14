@@ -82,7 +82,9 @@ const QuickAccessMenuRouter: React.FC = () => {
       )}
 
       {/* Footer */}
-      <Footer />
+      {(['game_select', 'plugin_config', 'search_results'] as PluginPage[]).includes(currentPage) && (
+        <Footer />
+      )}
     </div>
   )
 }

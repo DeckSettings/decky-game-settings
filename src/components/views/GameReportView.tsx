@@ -11,6 +11,7 @@ import { ScrollableWindowRelative } from '../elements/ScrollableWindow'
 import { MdArrowBack, MdWeb } from 'react-icons/md'
 import remarkGfm from 'remark-gfm'
 import rehypeSanitize from 'rehype-sanitize'
+import { TbReport } from 'react-icons/tb'
 
 // Type guard to distinguish ExternalReview from GameReport.
 export const isExternalReview = (report: GameReport | ExternalReview): report is ExternalReview => {
@@ -313,49 +314,53 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
           </Focusable>
         </div>
         <hr />
-      </div>
 
-      {gameReport && !isExternalReview(gameReport) && isOwner && (
-        <div style={{
-          margin: 0,
-          paddingLeft: '5px',
-          paddingRight: '5px',
-          paddingTop: '5px',
-          paddingBottom: 0,
-          overflow: 'hidden',
-        }}>
-          <DialogButton
-            style={{
-              width: '90%',
-              minWidth: 0,
-              padding: '3px',
-              fontSize: '14px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginLeft: 'auto',
-              marginRight: 'auto',
-              gap: '1rem',
-            }}
-            onClick={() => {
-              const proceed = () => {
-                saveDraftFromReport()
-                if (onRequestEdit) onRequestEdit()
-              }
-              if (hasToken()) {
-                proceed()
-              } else {
-                popupLoginDialog(() => {
-                  // If login succeeded and user closes the dialog, proceed
-                  if (hasToken()) proceed()
-                })
-              }
-            }}
-          >
-            Edit this report
-          </DialogButton>
-        </div>
-      )}
+        {gameReport && !isExternalReview(gameReport) && isOwner && (
+          <>
+            <div style={{
+              margin: 0,
+              paddingLeft: '16px',
+              paddingRight: '16px',
+              paddingTop: '3px',
+              paddingBottom: '3px',
+              overflow: 'hidden',
+            }}>
+              <DialogButton
+                style={{
+                  width: '100%',
+                  minWidth: 0,
+                  padding: '3px',
+                  fontSize: '14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginLeft: 'auto',
+                  marginRight: 'auto',
+                  gap: '1rem',
+                }}
+                onClick={() => {
+                  const proceed = () => {
+                    saveDraftFromReport()
+                    if (onRequestEdit) onRequestEdit()
+                  }
+                  if (hasToken()) {
+                    proceed()
+                  } else {
+                    popupLoginDialog(() => {
+                      // If login succeeded and user closes the dialog, proceed
+                      if (hasToken()) proceed()
+                    })
+                  }
+                }}
+              >
+                <TbReport fill="#FF5E5B" />
+                Edit this report
+              </DialogButton>
+            </div>
+            <hr />
+          </>
+        )}
+      </div>
 
       <Focusable
         style={{
@@ -554,8 +559,6 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
             )}
           </>
         </ScrollableWindowRelative>
-        <div style={{ height: '32px' }} />
-        {/* provide space for bottom banner */}
       </Focusable>
     </>
   )
