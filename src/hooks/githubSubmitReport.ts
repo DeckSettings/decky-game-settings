@@ -54,17 +54,9 @@ export const submitReportDraft = async (payload: any, templateBody: any[]): Prom
     const paths: string[] = Array.isArray(payload.images) ? payload.images : []
     const toFs = (p: string) => (p?.startsWith('file://') ? p.replace(/^file:\/\//, '') : p)
     const fsPaths = paths.map(toFs)
-    let base64List: string[] = []
-    try {
-      base64List = await call<[string[]], string[]>('get_images_as_base64', fsPaths)
-      base64List = Array.isArray(base64List) ? base64List.filter(Boolean) : []
-    } catch (e) {
-      console.error('[githubSubmitReport] get_images_as_base64 failed', e)
-      base64List = []
-    }
-    // 2) Upload images, get raw URLs (skip if none converted)
-    const uploadedUrls = base64List.length > 0 ? await uploadImagesFromBase64(base64List) : []
-    if (paths.length > 0 && base64List.length > 0 && uploadedUrls.length === 0) {
+    // 2) Upload images, get raw URLs.
+    const uploadedUrls = paths.length > 0 ? await uploadImagesViaBackend(fsPaths) : []
+    if (paths.length > 0 && uploadedUrls.length === 0) {
       throw new Error('Failed to upload screenshots. Please try again.')
     }
     // 3) Build markdown body with labels mapped from template and images under Game Display Settings
@@ -94,17 +86,8 @@ export const updateReportDraft = async (
     const paths: string[] = Array.isArray(payload.images) ? payload.images : []
     const toFs = (p: string) => (p?.startsWith('file://') ? p.replace(/^file:\/\//, '') : p)
     const fsPaths = paths.map(toFs)
-    let base64List: string[] = []
-    try {
-      base64List = await call<[string[]], string[]>('get_images_as_base64', fsPaths)
-      base64List = Array.isArray(base64List) ? base64List.filter(Boolean) : []
-    } catch (e) {
-      console.error('[githubSubmitReport] get_images_as_base64 failed', e)
-      base64List = []
-    }
     // 2) Upload images, get raw URLs.
-    //    As this is an update, we can ignore if no imgaes are bing uploaded. That is fine for edits.
-    const uploadedUrls = base64List.length > 0 ? await uploadImagesFromBase64(base64List) : []
+    const uploadedUrls = paths.length > 0 ? await uploadImagesViaBackend(fsPaths) : []
     // 3) Build markdown body with labels mapped from template and only newly uploaded images
     const body = buildIssueBodyFromTemplate(payload, templateBody, uploadedUrls)
     // 4) Update issue with new placeholder title
@@ -126,7 +109,7 @@ export const uploadImagesFromBase64 = async (imagesBase64: string[] = []): Promi
   if (!imagesBase64 || imagesBase64.length === 0) return []
   const token = await ensureFreshToken()
   if (!token) throw new Error('No GitHub token available')
-  const endpoint = 'https://asset-upload.deckverified.games/'
+  const endpoint = 'https://deck-verified-asset-upload.jsunnex.workers.dev/'
   const res = await fetchNoCors(endpoint, {
     method: 'PUT',
     headers: {
@@ -144,6 +127,14 @@ export const uploadImagesFromBase64 = async (imagesBase64: string[] = []): Promi
   return results
     .map((r) => (typeof r?.url === 'string' ? r.url : null))
     .filter((u: string | null): u is string => !!u && u.startsWith('http'))
+}
+
+// Upload images to repo and return raw URLs
+export const uploadImagesViaBackend = async (paths: string[]): Promise<string[]> => {
+  const token = await ensureFreshToken()
+  if (!token) throw new Error('No GitHub token available')
+  // The Python function signature is (paths: list, token: str)
+  return await call<[string[], string], string[]>('upload_images', paths, token)
 }
 
 // Build markdown from template body, mapping ids to labels; inject images under Game Display Settings

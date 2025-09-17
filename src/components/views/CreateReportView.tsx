@@ -299,11 +299,9 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
     const items = templateBody.filter((x: any) => x && x.type !== 'markdown' && x.id)
     // Ensure missing items are present as empty strings
     const nextValues: Record<string, string> = { ...values }
-    // Special-case: treat screenshots as satisfying game_display_settings
+    // For new reports, keep game_display_settings empty (screenshots satisfy validation separately below)
     if (!editingIssueNumber) {
-      if (Array.isArray(selectedImages) && selectedImages.length > 0) {
-        try { nextValues['game_display_settings'] = JSON.stringify(selectedImages) } catch { nextValues['game_display_settings'] = selectedImages.join('\n') }
-      }
+      nextValues['game_display_settings'] = nextValues['game_display_settings'] ?? '' // Ensure we at least have an empty string here
     }
     items.forEach((it: any) => {
       if (nextValues[it.id] === undefined || nextValues[it.id] === null) nextValues[it.id] = ''

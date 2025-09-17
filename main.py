@@ -1,6 +1,11 @@
-import os
-import base64
+import json
 import mimetypes
+import os
+import ssl
+import time
+import uuid
+import urllib.request
+import urllib.error
 
 # The decky plugin module is located at decky-loader/plugin
 # For easy intellisense checkout the decky-loader code repo
@@ -63,38 +68,126 @@ class Plugin:
         mime, _ = mimetypes.guess_type(path)
         return mime or 'image/jpeg'
 
-    async def get_image_as_base64(self, path: str) -> str:
-        """Read a local image file and return a data URL base64 string.
-        Returns empty string on failure.
-        """
-        try:
-            if not path:
-                return ""
-            # Normalize file:// URLs to filesystem path
-            if path.startswith('file://'):
-                path = path.replace('file://', '', 1)
-            if not os.path.isfile(path):
-                decky.logger.error(f"Not a file: {path}")
-                return ""
-            with open(path, 'rb') as f:
-                data = f.read()
-            b64 = base64.b64encode(data).decode('ascii')
-            mime = self._guess_mime(path)
-            return f"data:{mime};base64,{b64}"
-        except Exception as e:
-            decky.logger.exception(f"Failed for {path}: {e}")
-            return ""
+    def _normalize_path(self, p: str) -> str:
+        return p.replace("file://", "", 1) if p.startswith("file://") else p
 
-    async def get_images_as_base64(self, paths: list) -> list:
-        """Batch version: accepts list of paths, returns list of data URLs (empty string for failures)."""
-        results = []
-        for p in (paths or []):
-            try:
-                res = await self.get_image_as_base64(str(p))
-            except Exception:
-                res = ""
-            results.append(res)
-        return results
+    def _read_file(self, path: str) -> bytes:
+        with open(path, "rb") as f:
+            return f.read()
+
+    def _http_request(self, url: str, method: str, headers: dict, body: bytes, timeout: float = 60.0):
+        req = urllib.request.Request(url, method=method, data=body, headers=headers or {})
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        opener = urllib.request.build_opener(urllib.request.HTTPSHandler(context=ctx))
+        try:
+            with opener.open(req, timeout=timeout) as resp:
+                return resp.status, resp.read()
+        except urllib.error.HTTPError as e:
+            return e.code, (e.read() if hasattr(e, "read") else b"")
+        except Exception as e:
+            raise RuntimeError(f"HTTP request failed: {e}")
+
+    def _chunk(self, seq, n):
+        for i in range(0, len(seq), n):
+            yield seq[i:i+n]
+
+    def _build_multipart_body(self, files):
+        """
+        Returns: (content_type_header_value, body_bytes) for multi-part form data
+        """
+        boundary = f"----DeckyBoundary{int(time.time()*1000)}{uuid.uuid4().hex}"
+        parts = []
+        bnd = boundary.encode("ascii")
+
+        for f in files:
+            filename = f["filename"]
+            mime = f["mime"]
+            data = f["data"]
+
+            # Each part: --boundary CRLF
+            # Content-Disposition + Content-Type + CRLF CRLF + data + CRLF
+            parts.append(b"--" + bnd + b"\r\n")
+            parts.append(
+                (
+                    f'Content-Disposition: form-data; name="images"; filename="{filename}"\r\n'
+                    f"Content-Type: {mime}\r\n\r\n"
+                ).encode("utf-8")
+            )
+            parts.append(data)
+            parts.append(b"\r\n")
+
+        # Closing boundary
+        parts.append(b"--" + bnd + b"--\r\n")
+        body = b"".join(parts)
+        content_type = f"multipart/form-data; boundary={boundary}"
+        return content_type, body
+
+    async def upload_images(self, paths: list, token: str) -> list:
+        """
+        Read local image files and upload via multipart/form-data.
+        - Reject any single file > 1 MiB (single_image_max_bytes).
+        - Send in batches of up to max_images_per_request.
+        Returns list[str] URLs.
+        """
+        single_image_max_bytes = 1 * 1024 * 1024  # 1 MiB
+        max_images_per_request = 7
+        try:
+            if not isinstance(paths, list) or len(paths) == 0:
+                return []
+
+            # Collect & validate files
+            files = []
+            for raw in paths:
+                p = self._normalize_path(str(raw or ""))
+                if not p or not os.path.isfile(p):
+                    decky.logger.warning(f"upload_images: skipping non-file: {p}")
+                    continue
+                buf = self._read_file(p)
+                if len(buf) > single_image_max_bytes:
+                    raise ValueError(
+                        f"Image too large: {os.path.basename(p)} is {len(buf)} bytes "
+                        f"(max {single_image_max_bytes}). Images cannot be more than 1MB each."
+                    )
+                mime = self._guess_mime(p)
+                filename = os.path.basename(p) or f"image-{uuid.uuid4().hex}"
+                files.append({"filename": filename, "mime": mime, "data": buf})
+
+            if not files:
+                return []
+
+            # Send in batches up to max_images_per_request
+            all_urls: list[str] = []
+            for batch_idx, batch in enumerate(self._chunk(files, max_images_per_request)):
+                content_type, body = self._build_multipart_body(batch)
+                headers = {
+                    "Authorization": f"Bearer {token}",
+                    "Accept": "application/json",
+                    "Content-Type": content_type,
+                    "User-Agent": "decky-plugin/asset-uploader",
+                }
+
+                status, data = self._http_request("https://asset-upload.deckverified.games/", "POST", headers, body)
+                if status < 200 or status >= 300:
+                    text = (data or b"").decode("utf-8", "replace")
+                    raise RuntimeError(f"Asset upload failed for batch {batch_idx}: {status}\n{text}")
+
+                try:
+                    js = json.loads((data or b"{}").decode("utf-8", "replace"))
+                    results = js.get("results") or []
+                    for r in results:
+                        if isinstance(r, dict):
+                            url = r.get("url")
+                            if isinstance(url, str) and url:
+                                all_urls.append(url)
+                except Exception as e:
+                    raise RuntimeError(f"Invalid JSON from server (batch {batch_idx}): {e}")
+
+            return all_urls
+        except Exception as e:
+            decky.logger.exception(f"upload_images failed: {e}")
+            raise
 
     async def get_sys_vendor(self) -> str:
         """Return DMI system vendor from /sys/class/dmi/id/sys_vendor, or empty string on failure."""
