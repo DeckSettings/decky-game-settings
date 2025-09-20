@@ -3,9 +3,13 @@ import {
 } from '@decky/api'
 import { MdTune } from 'react-icons/md'
 import QuickAccessMenuRouter from './components/QuickAccessMenuRouter'
+import { gameChangeActions } from './hooks/gameLibrary'
 
 export default definePlugin(() => {
   console.log('Plugin initializing, this is called once on frontend startup')
+
+  // Register for game lifetime change notifications
+  const onGameChange = gameChangeActions()
 
   return {
     // The name shown in various decky menus
@@ -21,6 +25,7 @@ export default definePlugin(() => {
     // The function triggered when your plugin unloads
     onDismount() {
       console.log('[decky-game-settings:index] Unloading background profile listener.')
+      if (onGameChange && typeof onGameChange.unregister === 'function') onGameChange.unregister()
     },
   }
 })

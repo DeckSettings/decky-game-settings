@@ -1,6 +1,7 @@
 import { Router } from '@decky/ui'
 import { ignoreListAppRegex, ignoreListCompatibilityTools } from '../constants'
 import type { GameInfo } from '../interfaces'
+import { AppLifetimeNotification } from '@decky/ui/dist/globals/steam-client/GameSessions'
 
 
 export type ImageInfo = {
@@ -117,5 +118,36 @@ export const fetchScreenshotList = async (): Promise<ImageInfo[]> => {
   } catch (e) {
     console.warn('[gameLibrary] Failed to fetch screenshots', e)
     return []
+  }
+}
+
+// Register for Steam game lifetime notifications (apps start/stop)
+// Returns the Steam "Unregisterable" handle (or null if unavailable)
+// Use this to hook actions when a game starts/stops.
+export const gameChangeActions = (): any | null => {
+  try {
+    const gsApi = SteamClient?.GameSessions
+    const register = gsApi?.RegisterForAppLifetimeNotifications
+    if (!register) {
+      console.warn('[gameLibrary] SteamClient.GameSessions.RegisterForAppLifetimeNotifications is not available')
+      return null
+    }
+
+    // Register callback; Steam invokes this with AppLifetimeNotification
+    const handle = register((notification: AppLifetimeNotification) => {
+      // TODO: Execute actions on game start/stop using notification
+      // Example usage to be implemented later:
+      // if (!notification.bRunning) {
+      //   const appId = notification.unAppID
+      //   // Do something with appId
+      // }
+      try { console.debug('[gameLibrary] AppLifetime notification:', notification) } catch { }
+    })
+
+    // Expect an object exposing `unregister()`
+    return handle ?? null
+  } catch (e) {
+    console.error('[gameLibrary] gameChangeActions registration failed:', e)
+    return null
   }
 }

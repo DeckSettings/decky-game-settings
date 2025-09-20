@@ -46,7 +46,7 @@ const toNumber = (v: any): number => {
 export const fetchSystemInfo = async (): Promise<SystemInfo | null> => {
   try {
     // SteamClient is provided by the Steam environment at runtime
-    const sysApi = (typeof SteamClient !== 'undefined') ? (SteamClient as any).System : undefined
+    const sysApi = SteamClient?.System
     const getter = sysApi?.GetSystemInfo
     if (!getter) {
       console.warn('[systemInfo] SteamClient.System.GetSystemInfo is not available')
