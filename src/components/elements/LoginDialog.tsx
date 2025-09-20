@@ -147,6 +147,27 @@ export const popupLoginDialog = (onCloseCallback = () => { }) => {
                 >
                   {userCode}
                 </div>
+
+                <div
+                  style={{
+                    fontSize: 12,
+                    lineHeight: 1.4,
+                    margin: "8px 0",
+                    padding: "8px",
+                    borderRadius: 6,
+                    background: "rgba(255,255,255,0.04)",
+                  }}
+                >
+                  <strong>Granted Permissions:</strong> This plugin uses
+                  GitHub Device Authorization with a "Deck
+                  Settings" owned GitHub App. The token granted is
+                  limited to reading repository metadata and
+                  creating/updating issues. It only applies to the
+                  https://github.com/DeckSettings/game-reports-steamos
+                  repository. The plugin cannot access your private
+                  repositories or make changes elsewhere on your
+                  GitHub account with the issued token.
+                </div>
               </div>
 
               <div style={{ flexShrink: 0 }}>
