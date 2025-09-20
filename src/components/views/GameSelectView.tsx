@@ -35,17 +35,17 @@ const GameSelectView: React.FC<GameSelectViewProps> = ({ onGameSelect, onSearch,
         setNonInstalledGames(nonInstalledGames)
       }
     } catch (error) {
-      console.error('[GameSelectView] Error fetching installed games:', error)
+      console.error('[decky-game-settings:GameSelectView] Error fetching installed games:', error)
     }
   }
 
   const handleGameSelect = (game: GameInfo) => {
-    console.log(`[GameSelectView] Selected game [AppID:${game.appId}, Title:${game.title}]`)
+    console.log(`[decky-game-settings:GameSelectView] Selected game [AppID:${game.appId}, Title:${game.title}]`)
     onGameSelect(game)
   }
 
   useEffect(() => {
-    console.log(`[GameSelectView] Mounted`)
+    console.log(`[decky-game-settings:GameSelectView] Mounted`)
     fetchInstalledGames()
   }, [])
 
@@ -53,15 +53,15 @@ const GameSelectView: React.FC<GameSelectViewProps> = ({ onGameSelect, onSearch,
     <>
       <div>
         <div style={{ padding: '3px 16px 3px 16px', margin: 0 }}>
-          <Focusable style={{ display: 'flex', alignItems: 'stretch', gap: '1rem' }}
+          <Focusable style={{ display: 'flex', alignItems: 'stretch', gap: '1rem', height: '26px' }}
                      flow-children="horizontal">
             <DialogButton
               // @ts-ignore
               autoFocus={true}
               retainFocus={true}
               style={{
-                width: '30%',
-                minWidth: 0,
+                width: '73px',
+                minWidth: '73px',
                 padding: '3px',
                 fontSize: '14px',
                 display: 'flex',

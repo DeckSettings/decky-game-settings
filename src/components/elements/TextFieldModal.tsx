@@ -29,7 +29,7 @@ export const TextFieldModal = ({ closeModal, onClosed, label, placeholder, initi
 
   // Helper to reliably bring up virtual keyboard and ensure textarea focus sticks
   const focusTextareaWithKeyboard = (select: boolean = false) => {
-    console.log(`[TextFieldModal] Setting focus to textarea`)
+    console.log(`[decky-game-settings:TextFieldModal] Setting focus to textarea`)
     try {
       // Temporarily enable hidden input to trigger virtual keyboard, then disable again. Select the textarea.
       setHiddenEnabled(true)
@@ -58,9 +58,9 @@ export const TextFieldModal = ({ closeModal, onClosed, label, placeholder, initi
   }
 
   useEffect(() => {
-    console.log(`[TextFieldModal] Mounted`)
+    console.log(`[decky-game-settings:TextFieldModal] Mounted`)
     Router.CloseSideMenus()
-    console.log(`[TextFieldModal] Display text input multiline = ${!!multiline}`)
+    console.log(`[decky-game-settings:TextFieldModal] Display text input multiline = ${!!multiline}`)
     // Set focus on text input
     try {
       if (multiline) {
@@ -103,11 +103,11 @@ export const TextFieldModal = ({ closeModal, onClosed, label, placeholder, initi
             value={returnText}
             placeholder={placeholder}
             onFocus={() => {
-              console.log("[TextFieldModal] multiline textarea onFocus - setting focus hiddenTextField")
+              console.log("[decky-game-settings:TextFieldModal] multiline textarea onFocus - setting focus hiddenTextField")
               focusTextareaWithKeyboard(false)
             }}
             onClick={() => {
-              console.log("[TextFieldModal] multiline textarea onClick - setting focus hiddenTextField")
+              console.log("[decky-game-settings:TextFieldModal] multiline textarea onClick - setting focus hiddenTextField")
               focusTextareaWithKeyboard(false)
             }}
             onChange={(e) => {

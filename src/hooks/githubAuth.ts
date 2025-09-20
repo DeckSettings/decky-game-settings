@@ -84,7 +84,6 @@ export const fetchUserProfile = async (access_token: string): Promise<GithubUser
   })
   if (!res.ok) throw new Error(`fetchUserProfile failed: ${res.status} ${res.statusText}`)
   const u = await res.json()
-  console.log(u)
   return {
     login: u.login,
     avatar_url: u.avatar_url,

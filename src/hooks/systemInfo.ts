@@ -49,11 +49,11 @@ export const fetchSystemInfo = async (): Promise<SystemInfo | null> => {
     const sysApi = SteamClient?.System
     const getter = sysApi?.GetSystemInfo
     if (!getter) {
-      console.warn('[systemInfo] SteamClient.System.GetSystemInfo is not available')
+      console.warn('[decky-game-settings:systemInfo] SteamClient.System.GetSystemInfo is not available')
       return null
     }
     const infoRaw = await sysApi?.GetSystemInfo()
-    try { console.log('[systemInfo] System info:', infoRaw) } catch { }
+    try { console.log('[decky-game-settings:systemInfo] System info:', infoRaw) } catch { }
 
     // Add additionaal information from python backend
     let sysVendorResp = ''
@@ -98,7 +98,7 @@ export const fetchSystemInfo = async (): Promise<SystemInfo | null> => {
 
     return info
   } catch (e) {
-    console.error('[systemInfo] Failed to fetch system info:', e)
+    console.error('[decky-game-settings:systemInfo] Failed to fetch system info:', e)
     return null
   }
 }

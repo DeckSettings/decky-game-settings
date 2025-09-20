@@ -96,7 +96,7 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
       // Collect image URLs and do not render inline
       useEffect(() => {
         if (typeof src === 'string' && src.length > 0) {
-          setImageUrls(prev => (prev.includes(src) ? prev : [...prev, src]))
+          setImageUrls((prev) => (prev.includes(src) ? prev : [...prev, src]))
         }
       }, [src])
       return null
@@ -114,7 +114,7 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
 
       // Convert children to an array and check if any <img> has a shields.io URL.
       const childrenArray = React.Children.toArray(children)
-      const containsShieldsBadge = childrenArray.some(child => {
+      const containsShieldsBadge = childrenArray.some((child) => {
         if (!excludeShieldsBadges) return false
         if (React.isValidElement(child) && child.type === 'img') {
           const imgSrc = child.props.src
@@ -137,7 +137,11 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
       }
 
       // Otherwise, render the link normally.
-      return <a href={href} title={title} {...rest}>{children}</a>
+      return (
+        <a href={href} title={title} {...rest}>
+          {children}
+        </a>
+      )
     },
   }
 
@@ -163,9 +167,9 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
   //    "scaling_filter": "SCALING FILTER",
   //};
   const systemConfiguration = {
-    'undervolt_applied': 'Undervolt Applied',
-    'compatibility_tool_version': 'Compatibility Tool Version',
-    'custom_launch_options': 'Game Launch Options',
+    undervolt_applied: 'Undervolt Applied',
+    compatibility_tool_version: 'Compatibility Tool Version',
+    custom_launch_options: 'Game Launch Options',
   }
   const systemConfigurationData = Object.entries(systemConfiguration)
     .map(([key, formattedKey]) => {
@@ -175,18 +179,18 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
       }
       return null
     })
-    .filter(entry => entry !== null) as [string, string][]
+    .filter((entry) => entry !== null) as [string, string][]
 
   const performanceSettings = {
-    'frame_limit': 'Frame Limit',
-    'disable_frame_limit': 'Disable Frame Limit',
-    'enable_vrr': 'Enable VRR',
-    'allow_tearing': 'Allow Tearing',
-    'half_rate_shading': 'Half Rate Shading',
-    'tdp_limit': 'TDP Limit',
-    'manual_gpu_clock': 'Manual GPU Clock',
-    'scaling_mode': 'Scaling Mode',
-    'scaling_filter': 'Scaling Filter',
+    frame_limit: 'Frame Limit',
+    disable_frame_limit: 'Disable Frame Limit',
+    enable_vrr: 'Enable VRR',
+    allow_tearing: 'Allow Tearing',
+    half_rate_shading: 'Half Rate Shading',
+    tdp_limit: 'TDP Limit',
+    manual_gpu_clock: 'Manual GPU Clock',
+    scaling_mode: 'Scaling Mode',
+    scaling_filter: 'Scaling Filter',
   }
   const performanceSettingsData = Object.entries(performanceSettings)
     .map(([key, formattedKey]) => {
@@ -196,8 +200,7 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
       }
       return null
     })
-    .filter(entry => entry !== null) as [string, string][]
-
+    .filter((entry) => entry !== null) as [string, string][]
 
   const openWeb = (url: string) => {
     Navigation.NavigateToExternalWeb(url)
@@ -267,14 +270,17 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
             `}</style>
       <div>
         <div style={{ padding: '3px 16px 3px 16px', margin: 0 }}>
-          <Focusable style={{ display: 'flex', alignItems: 'stretch', gap: '1rem' }} flow-children="horizontal">
+          <Focusable
+            style={{ display: 'flex', alignItems: 'stretch', gap: '1rem', height: '26px' }}
+            flow-children='horizontal'
+          >
             <DialogButton
               // @ts-ignore
               autoFocus={true}
               retainFocus={true}
               style={{
-                width: '30%',
-                minWidth: 0,
+                width: '73px',
+                minWidth: '73px',
                 padding: '3px',
                 fontSize: '14px',
                 display: 'flex',
@@ -282,7 +288,8 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
                 justifyContent: 'center',
                 gap: '1rem',
               }}
-              onClick={onGoBack}>
+              onClick={onGoBack}
+            >
               <MdArrowBack />
             </DialogButton>
             <DialogButton
@@ -308,7 +315,8 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
                     }
                   }
                 }
-              }}>
+              }}
+            >
               <MdWeb /> Open in browser
             </DialogButton>
           </Focusable>
@@ -317,14 +325,16 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
 
         {gameReport && !isExternalReview(gameReport) && isOwner && (
           <>
-            <div style={{
-              margin: 0,
-              paddingLeft: '16px',
-              paddingRight: '16px',
-              paddingTop: '3px',
-              paddingBottom: '3px',
-              overflow: 'hidden',
-            }}>
+            <div
+              style={{
+                margin: 0,
+                paddingLeft: '16px',
+                paddingRight: '16px',
+                paddingTop: '3px',
+                paddingBottom: '3px',
+                overflow: 'hidden',
+              }}
+            >
               <DialogButton
                 style={{
                   width: '100%',
@@ -353,7 +363,7 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
                   }
                 }}
               >
-                <TbReport fill="#FF5E5E" />
+                <TbReport fill='#FF5E5E' />
                 Edit this report
               </DialogButton>
             </div>
@@ -374,44 +384,52 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
         <ScrollableWindowRelative>
           <>
             {gameReport && (
-              <div className="game-report"
+              <div
+                className='game-report'
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'right',
                   margin: '10px',
-                }}>
+                }}
+              >
                 {isExternalReview(gameReport) ? (
                   <>
                     <img
                       src={gameReport.source.avatar_url}
-                      alt="Source Avatar"
+                      alt='Source Avatar'
                       style={{ height: '18px', marginLeft: '3px' }}
                     />
-                    <span style={{
-                      padding: '0 0 3px 3px',
-                      margin: 0,
-                      color: 'white',
-                      fontWeight: 'bold',
-                      fontSize: '14px',
-                      lineHeight: '16px',
-                    }}>
+                    <span
+                      style={{
+                        padding: '0 0 3px 3px',
+                        margin: 0,
+                        color: 'white',
+                        fontWeight: 'bold',
+                        fontSize: '14px',
+                        lineHeight: '16px',
+                      }}
+                    >
                       {gameReport.source.name}
                     </span>
                   </>
                 ) : (
                   <>
-                    <img src={gameReport.user.avatar_url}
-                      alt="User Avatar"
-                      style={{ height: '18px', marginLeft: '3px' }} />
-                    <span style={{
-                      padding: '0 0 3px 3px',
-                      margin: 0,
-                      color: 'white',
-                      fontWeight: 'bold',
-                      fontSize: '14px',
-                      lineHeight: '16px',
-                    }}>
+                    <img
+                      src={gameReport.user.avatar_url}
+                      alt='User Avatar'
+                      style={{ height: '18px', marginLeft: '3px' }}
+                    />
+                    <span
+                      style={{
+                        padding: '0 0 3px 3px',
+                        margin: 0,
+                        color: 'white',
+                        fontWeight: 'bold',
+                        fontSize: '14px',
+                        lineHeight: '16px',
+                      }}
+                    >
                       {gameReport.user.login}
                     </span>
                   </>
@@ -420,33 +438,34 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
             )}
 
             {youTubeVideoId && (
-              <div className="game-report"
+              <div
+                className='game-report'
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'right',
                   margin: '10px',
-                }}>
+                }}
+              >
                 <iframe
-                  className="yt-embed"
+                  className='yt-embed'
                   src={`https://www.youtube.com/embed/${youTubeVideoId}?fs=0&controls=0`}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen={false}>
+                  allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
+                  allowFullScreen={false}
+                >
                   {`Loading embedded YT player for link https://youtu.be/${youTubeVideoId}`}
                 </iframe>
               </div>
             )}
 
             {systemConfigurationData && systemConfigurationData.length > 0 && (
-              <div className="game-report-section">
-                <PanelSection title="System Configuration">
-                  <div className="game-report-section-body">
+              <div className='game-report-section'>
+                <PanelSection title='System Configuration'>
+                  <div className='game-report-section-body'>
                     <ul>
                       {systemConfigurationData.map(([key, value]) => (
                         <li key={key}>
-                          <strong>
-                            {key}
-                          </strong>
+                          <strong>{key}</strong>
                           {value}
                         </li>
                       ))}
@@ -458,15 +477,13 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
             )}
 
             {performanceSettingsData && performanceSettingsData.length > 0 && (
-              <div className="game-report-section">
-                <PanelSection title="Performance Settings">
-                  <div className="game-report-section-body">
+              <div className='game-report-section'>
+                <PanelSection title='Performance Settings'>
+                  <div className='game-report-section-body'>
                     <ul>
                       {performanceSettingsData.map(([key, value]) => (
                         <li key={key}>
-                          <strong>
-                            {key}
-                          </strong>
+                          <strong>{key}</strong>
                           {value}
                         </li>
                       ))}
@@ -478,11 +495,10 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
             )}
 
             {gameReport && gameReport.data.game_display_settings && (
-              <div className="game-report-section">
-                <PanelSection title="Game Display Settings">
-                  <div className="game-report-section-body">
-                    <ReactMarkdown rehypePlugins={[rehypeSanitize]}
-                      components={markdownComponents}>
+              <div className='game-report-section'>
+                <PanelSection title='Game Display Settings'>
+                  <div className='game-report-section-body'>
+                    <ReactMarkdown rehypePlugins={[rehypeSanitize]} components={markdownComponents}>
                       {gameReport.data.game_display_settings || ''}
                     </ReactMarkdown>
                   </div>
@@ -492,11 +508,10 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
             )}
 
             {gameReport && gameReport.data.game_graphics_settings && (
-              <div className="game-report-section">
-                <PanelSection title="Game Graphics Settings">
-                  <div className="game-report-section-body">
-                    <ReactMarkdown rehypePlugins={[rehypeSanitize]}
-                      components={markdownComponents}>
+              <div className='game-report-section'>
+                <PanelSection title='Game Graphics Settings'>
+                  <div className='game-report-section-body'>
+                    <ReactMarkdown rehypePlugins={[rehypeSanitize]} components={markdownComponents}>
                       {gameReport.data.game_graphics_settings || ''}
                     </ReactMarkdown>
                   </div>
@@ -506,12 +521,14 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
             )}
 
             {gameReport && gameReport.data.additional_notes && (
-              <div className="game-report-section">
-                <PanelSection title="Additional Notes">
-                  <div className="game-report-section-body">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}
+              <div className='game-report-section'>
+                <PanelSection title='Additional Notes'>
+                  <div className='game-report-section-body'>
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
                       rehypePlugins={[rehypeSanitize]}
-                      components={markdownComponents}>
+                      components={markdownComponents}
+                    >
                       {gameReport.data.additional_notes || ''}
                     </ReactMarkdown>
                   </div>
@@ -538,12 +555,12 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
                     onClick={() => {
                       try {
                         showModal(<ImagePreviewModal src={url} alt={'Image'} />)
-                      } catch { }
+                      } catch {}
                     }}
                   >
                     <img
                       src={url}
-                      alt="Image"
+                      alt='Image'
                       style={{
                         display: 'block',
                         maxWidth: '100%',

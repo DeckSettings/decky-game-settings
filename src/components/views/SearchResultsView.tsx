@@ -25,17 +25,17 @@ const SearchResultsView: React.FC<SearchResultsViewProps> = ({ query, onGameSele
     setIsLoading(true)
     try {
       const results = await getGamesBySearchTerm(term)
-      console.log(`[SearchResultsView] Search Results: ${results}`)
+      console.log(`[decky-game-settings:SearchResultsView] Search Results: ${results}`)
       setSearchResults(results || [])
     } catch (error) {
-      console.error('[SearchResultsView] Error fetching search results:', error)
+      console.error('[decky-game-settings:SearchResultsView] Error fetching search results:', error)
     } finally {
       setIsLoading(false)
     }
   }
 
   useEffect(() => {
-    console.log(`[SearchResultsView] Mounted with query: ${query}`)
+    console.log(`[decky-game-settings:SearchResultsView] Mounted with query: ${query}`)
     fetchSearchResults(query)
   }, [query])
 
@@ -43,15 +43,15 @@ const SearchResultsView: React.FC<SearchResultsViewProps> = ({ query, onGameSele
     <>
       <div>
         <div style={{ padding: '3px 16px 3px 16px', margin: 0 }}>
-          <Focusable style={{ display: 'flex', alignItems: 'stretch', gap: '1rem' }}
+          <Focusable style={{ display: 'flex', alignItems: 'stretch', gap: '1rem', height: '26px' }}
                      flow-children="horizontal">
             <DialogButton
               // @ts-ignore
               autoFocus={true}
               retainFocus={true}
               style={{
-                width: '30%',
-                minWidth: 0,
+                width: '73px',
+                minWidth: '73px',
                 padding: '3px',
                 fontSize: '14px',
                 display: 'flex',

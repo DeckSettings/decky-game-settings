@@ -58,7 +58,7 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
             if (!initial['app_id'] && runningGame.appId !== undefined) initial['app_id'] = String(runningGame.appId)
           }
         } catch (e) {
-          console.error('[CreateReportView] auto-populate failed', e)
+          console.error('[decky-game-settings:CreateReportView] auto-populate failed', e)
         }
       }
 
@@ -107,7 +107,7 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
           }
         }
       } catch (e) {
-        console.warn('[CreateReportView] Could not infer system fields')
+        console.warn('[decky-game-settings:CreateReportView] Could not infer system fields')
       }
 
       // Build simplified sections with transformed fields based on hardware and rules
@@ -239,7 +239,7 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
         })
         push()
         setFormDef({ ...def, sections })
-        console.log(`[CreateReportView] Generated report form sections: ${JSON.stringify(sections)}`)
+        console.log(`[decky-game-settings:CreateReportView] Generated report form sections: ${JSON.stringify(sections)}`)
       } catch { }
 
       setValues(initial)
@@ -334,10 +334,10 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
     let issueUrl: string | null = null
     try {
       if (editingIssueNumber) {
-        console.log(`[CreateReportView] Updating issue #${editingIssueNumber} with data: ${JSON.stringify(finalDraft)}`)
+        console.log(`[decky-game-settings:CreateReportView] Updating issue #${editingIssueNumber} with data: ${JSON.stringify(finalDraft)}`)
         issueUrl = await updateReportDraft(finalDraft, templateBody, editingIssueNumber)
       } else {
-        console.log(`[CreateReportView] Submitting report data: ${JSON.stringify(finalDraft)}`)
+        console.log(`[decky-game-settings:CreateReportView] Submitting report data: ${JSON.stringify(finalDraft)}`)
         issueUrl = await submitReportDraft(finalDraft, templateBody)
       }
       setSubmitError(null)

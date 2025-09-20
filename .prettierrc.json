@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json.schemastore.org/prettierrc",
+  "singleQuote": true,
+  "jsxSingleQuote": true,
+  "quoteProps": "consistent",
+  "printWidth": 120,
+  "bracketSameLine": false,
+  "trailingComma": "es5",
+  "semi": false,
+  "tabWidth": 2,
+  "useTabs": false,
+  "htmlWhitespaceSensitivity": "css",
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx"],
+      "options": { "semi": false }
+    },
+    {
+      "files": ["*.js", "*.jsx"],
+      "options": { "semi": true }
+    },
+    {
+      "files": ["*.json", "*.jsonc"],
+      "options": { "tabWidth": 2 }
+    }
+  ]
+}

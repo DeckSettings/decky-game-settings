@@ -1,16 +1,12 @@
-import {
-  definePlugin,
-} from '@decky/api'
-import { MdTune } from 'react-icons/md'
+import { definePlugin } from '@decky/api'
 import QuickAccessMenuRouter from './components/QuickAccessMenuRouter'
 import { gameChangeActions } from './hooks/gameLibrary'
+import DeckSettingsIcon from './components/icons/DeckSettingsIcon'
 
 export default definePlugin(() => {
-  console.log('Plugin initializing, this is called once on frontend startup')
-
   // Register for game lifetime change notifications
-  const onGameChange = gameChangeActions()
-
+  console.log('[decky-game-settings:index] Registering background game change listener.')
+  const gameChangeListener = gameChangeActions()
   return {
     // The name shown in various decky menus
     name: 'DeckyGameSettings',
@@ -21,11 +17,11 @@ export default definePlugin(() => {
     // The content of your plugin's menu
     content: <QuickAccessMenuRouter />,
     // The icon displayed in the plugin list
-    icon: <MdTune />,
+    icon: <DeckSettingsIcon size='1em' />,
     // The function triggered when your plugin unloads
     onDismount() {
-      console.log('[decky-game-settings:index] Unloading background profile listener.')
-      if (onGameChange && typeof onGameChange.unregister === 'function') onGameChange.unregister()
+      console.log('[decky-game-settings:index] Unloading background game change listener.')
+      if (gameChangeListener && typeof gameChangeListener.unregister === 'function') gameChangeListener.unregister()
     },
   }
 })

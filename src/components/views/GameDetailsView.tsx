@@ -74,7 +74,7 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
         setMetadata(null)
       }
     } catch (error) {
-      console.error('[GameDetailsView] Error fetching game details:', error)
+      console.error('[decky-game-settings:GameDetailsView] Error fetching game details:', error)
     } finally {
       setIsLoading(false)
     }
@@ -82,7 +82,7 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
 
   const [selectedReport, setSelectedReport] = useState<GameReport | ExternalReview | null>(null)
   const handleReportSelect = (gameReport: GameReport | ExternalReview) => {
-    console.log(`[GameDetailsView] Selected game report ${gameReport.title}`)
+    console.log(`[decky-game-settings:GameDetailsView] Selected game report ${gameReport.title}`)
     setSelectedReport(gameReport)
   }
 
@@ -92,7 +92,7 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
   }
 
   useEffect(() => {
-    console.log(`[GameDetailsView] Mounted with [appId: ${appId}, gameName: ${gameName}]`)
+    console.log(`[decky-game-settings:GameDetailsView] Mounted with [appId: ${appId}, gameName: ${gameName}]`)
     fetchData()
   }, [appId, gameName])
 
@@ -108,15 +108,15 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
         <>
           <div>
             <div style={{ padding: '3px 16px 3px 16px', margin: 0 }}>
-              <Focusable style={{ display: 'flex', alignItems: 'stretch', gap: '1rem' }}
+              <Focusable style={{ display: 'flex', alignItems: 'stretch', gap: '1rem', height: '26px' }}
                 flow-children="horizontal">
                 <DialogButton
                   // @ts-ignore
                   autoFocus={true}
                   retainFocus={true}
                   style={{
-                    width: '30%',
-                    minWidth: 0,
+                    width: '73px',
+                    minWidth: '73px',
                     padding: '3px',
                     fontSize: '14px',
                     display: 'flex',
@@ -346,7 +346,7 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
                                       textAlign: 'left',
                                       paddingRight: '3px',
                                     }}>Device:</strong>
-                                    {gameReport.data.device}
+                                    <span style={{color: 'green'}}>{gameReport.data.device}</span>
                                   </li>
                                   {gameReport.data.target_framerate && (
                                     <li style={{
@@ -578,7 +578,7 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
                                       textAlign: 'left',
                                       paddingRight: '3px',
                                     }}>Device:</strong>
-                                    {review.data.device}
+                                    <span style={{color: 'red'}}>{review.data.device}</span>
                                   </li>
                                   {review.data.target_framerate && (
                                     <li style={{
