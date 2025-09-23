@@ -30,6 +30,13 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
   const [currentDeviceLabel, setCurrentDeviceLabel] = useState<string | null>(null)
 
   const normaliseDeviceName = (value?: string | null) => value?.trim().toLowerCase() ?? ''
+  const extractDeviceLabel = (value: string) => {
+    const [, ...rest] = value.split(':')
+    if (rest.length === 0) {
+      return value.trim()
+    }
+    return rest.join(':').trimStart()
+  }
   const resolveDeviceColor = (deviceName?: string | null) => {
     if (!deviceName || !currentDeviceLabel) return undefined
     const matches = normaliseDeviceName(deviceName) === normaliseDeviceName(currentDeviceLabel)
@@ -75,7 +82,10 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
         } else {
           setConfigFilterDevices(true)
           const filtered = data.reports.filter((report) =>
-            report.labels.some((label) => pluginConfig.filterDevices.includes(label.description))
+            report.labels.some((label) => {
+              const labelName = extractDeviceLabel(label.name)
+              return pluginConfig.filterDevices.includes(labelName)
+            })
           )
           setFilteredReports(filtered)
         }

@@ -141,14 +141,25 @@ const PluginConfigView: React.FC<PluginConfigViewProps> = ({ onGoBack }) => {
     updateConfig({ filterDevices: updatedDevices })
   }
 
+  const deriveDeviceLabel = (value: string) => {
+    const [, ...rest] = value.split(':')
+    if (rest.length === 0) {
+      return value.trim()
+    }
+    return rest.join(':').trimStart()
+  }
+
   const sortedDeviceOptions = useMemo(
     () =>
       [...deviceList]
-        .sort((a, b) => a.description.localeCompare(b.description))
-        .map((device) => ({
-          label: `${currentConfig.filterDevices.includes(device.description) ? '✔' : '—'} ${device.description}`,
-          data: device.description,
-        })),
+        .map((device) => {
+          const deviceLabel = deriveDeviceLabel(device.name)
+          return {
+            label: `${currentConfig.filterDevices.includes(deviceLabel) ? '✔' : '—'} ${deviceLabel}`,
+            data: deviceLabel,
+          }
+        })
+        .sort((a, b) => a.data.localeCompare(b.data)),
     [deviceList, currentConfig.filterDevices]
   )
 

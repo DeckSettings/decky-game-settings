@@ -68,7 +68,7 @@ export const fetchDeviceList = async (): Promise<Devices[]> => {
 
   // Map and filter the labels
   const devices: Devices[] = issueLabels
-    .filter((label: GitHubIssueLabel) => label.name.startsWith('device:'))
+    .filter((label: GitHubIssueLabel) => label.name.startsWith('DEVICE:'))
     .map((label: GitHubIssueLabel) => ({
       name: label.name.trim(),
       description: label.description || 'No description available',
