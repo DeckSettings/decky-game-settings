@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { PanelSection, Focusable, DialogButton, Navigation, Router, showModal } from '@decky/ui'
 import ImagePreviewModal from '../elements/ImagePreviewModal'
 import ReactMarkdown, { Components } from 'react-markdown'
@@ -72,6 +72,60 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
   const [youTubeVideoId, setYouTubeVideoId] = useState<string | null>(null)
   const [imageUrls, setImageUrls] = useState<string[]>([])
   const [isOwner, setIsOwner] = useState<boolean>(false)
+  const [launchOptionsCopyState, setLaunchOptionsCopyState] = useState<'idle' | 'success' | 'error'>('idle')
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current)
+        copyTimeoutRef.current = null
+      }
+    }
+  }, [])
+
+  const copyTextToClipboard = async (text: string): Promise<boolean> => {
+    // Note: Steam UI does not seem to support navigator.clipboard
+    const el = document.createElement('textarea')
+    el.value = text
+    el.style.position = 'absolute'
+    el.style.opacity = '0'
+    el.style.right = '-999px'
+    document.body.appendChild(el)
+    el.focus()
+    el.select()
+    let successful = false
+    try {
+      successful = document.execCommand('copy')
+    } catch (err) {
+      console.warn('[decky-game-settings:GameReportView] SteamClient clipboard fallback failed', err)
+    } finally {
+      document.body.removeChild(el)
+    }
+    return successful
+  }
+
+  const handleCopyLaunchOptions = async (text: string) => {
+    // Make sure we actually have text
+    if (!text) return
+
+    // Copy text to clipboard
+    const didCopy = await copyTextToClipboard(text)
+    setLaunchOptionsCopyState(didCopy ? 'success' : 'error')
+
+    // Add a short notification to indicate that we copied the text
+    if (copyTimeoutRef.current) {
+      clearTimeout(copyTimeoutRef.current)
+      copyTimeoutRef.current = null
+    }
+    copyTimeoutRef.current = setTimeout(
+      () => {
+        setLaunchOptionsCopyState('idle')
+        copyTimeoutRef.current = null
+      },
+      didCopy ? 2000 : 4000
+    )
+  }
 
   // Reset collected images when switching reports
   useEffect(() => {
@@ -224,11 +278,15 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
     .map(([key, formattedKey]) => {
       if (gameReport && gameReport.data && key in gameReport.data && gameReport.data[key] !== null) {
         const value = gameReport.data[key]
-        return [formattedKey, String(value)]
+        return {
+          id: key,
+          label: formattedKey,
+          value: String(value),
+        }
       }
       return null
     })
-    .filter((entry) => entry !== null) as [string, string][]
+    .filter((entry) => entry !== null) as Array<{ id: string; label: string; value: string }>
 
   const performanceSettings = {
     frame_limit: 'Frame Limit',
@@ -519,12 +577,42 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
                 <PanelSection title='System Configuration'>
                   <div className='game-report-section-body game-report-section-custom-list'>
                     <ul>
-                      {systemConfigurationData.map(([key, value]) => (
-                        <li key={key}>
-                          <strong>{key}</strong>
-                          {value}
-                        </li>
-                      ))}
+                      {systemConfigurationData.map(({ id, label, value }) => {
+                        const isLaunchOptions = id === 'custom_launch_options'
+                        return (
+                          <li key={id}>
+                            <strong>{label}</strong>
+                            {isLaunchOptions ? (
+                              <span
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '8px',
+                                  flexWrap: 'wrap',
+                                }}
+                              >
+                                <span style={{ wordBreak: 'break-all' }}>{value}</span>
+                                <DialogButton
+                                  style={{ fontSize: '10px', padding: '2px 6px', minHeight: '0' }}
+                                  onClick={() => handleCopyLaunchOptions(value)}
+                                >
+                                  Copy to Clipboard
+                                </DialogButton>
+                                {launchOptionsCopyState === 'success' && (
+                                  <span style={{ fontSize: '10px', color: '#9cdcfe' }}>Copied!</span>
+                                )}
+                                {launchOptionsCopyState === 'error' && (
+                                  <span style={{ fontSize: '10px', color: '#f88' }}>
+                                    Copy failed. Ensure the Decky window is focused.
+                                  </span>
+                                )}
+                              </span>
+                            ) : (
+                              value
+                            )}
+                          </li>
+                        )
+                      })}
                     </ul>
                   </div>
                 </PanelSection>
