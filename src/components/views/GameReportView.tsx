@@ -31,6 +31,43 @@ interface GameReportViewProps {
   onRequestEdit?: () => void
 }
 
+const renderChildrenWithLineBreaks = (children: React.ReactNode) => {
+  const nodes: React.ReactNode[] = []
+  React.Children.forEach(children, (child, childIndex) => {
+    if (typeof child === 'string') {
+      const segments = child.split(/(\n)/)
+      segments.forEach((segment, segmentIndex) => {
+        if (segment === '\n') {
+          nodes.push(<br key={`br-${childIndex}-${segmentIndex}`} />)
+        } else if (segment.length > 0) {
+          nodes.push(segment)
+        }
+      })
+      return
+    }
+    nodes.push(child)
+  })
+  return nodes
+}
+
+const isShieldsBadge = (src: unknown): src is string => typeof src === 'string' && src.includes('shields.io')
+
+const findShieldsChild = (node: any) => {
+  const nodeChildren = node?.children
+  if (!Array.isArray(nodeChildren)) return undefined
+  return nodeChildren.find((child: any) => {
+    if (!child || child.type !== 'element') return false
+    if (child.tagName !== 'img') return false
+    const imgSrc = child.properties?.src
+    return isShieldsBadge(imgSrc)
+  })
+}
+
+const openWeb = (url: string) => {
+  Navigation.NavigateToExternalWeb(url)
+  Router.CloseSideMenus()
+}
+
 const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, onRequestEdit }) => {
   const [youTubeVideoId, setYouTubeVideoId] = useState<string | null>(null)
   const [imageUrls, setImageUrls] = useState<string[]>([])
@@ -39,6 +76,7 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
   // Reset collected images when switching reports
   useEffect(() => {
     setImageUrls([])
+    setYouTubeVideoId(null)
   }, [gameReport?.id])
 
   // Determine if current logged-in user owns this report
@@ -95,53 +133,64 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
       const { src } = props as any
       // Collect image URLs and do not render inline
       useEffect(() => {
-        if (typeof src === 'string' && src.length > 0) {
+        if (typeof src === 'string' && src.length > 0 && !isShieldsBadge(src)) {
           setImageUrls((prev) => (prev.includes(src) ? prev : [...prev, src]))
         }
       }, [src])
       return null
     },
-    a(props) {
-      const { node, href, title, children, ...rest } = props
-      // Enable shields.io filtering here
-      const excludeShieldsBadges = false
-      // Ensure href exists. We need it for any further functionality. If not, just return basic link
-      if (!href) return <a {...rest}>{children}</a>
-      // Check if the URL is a YouTube link.
+    p({ children }) {
+      return <p>{renderChildrenWithLineBreaks(children)}</p>
+    },
+    li({ children }) {
+      return <li>{renderChildrenWithLineBreaks(children)}</li>
+    },
+    a({ node, href, title, children }) {
+      // Ensure href exists. We need it for any further functionality. If not, return nothing
+      if (!href) return null
+
+      // Check for shields.io buttons
+      const shieldsChild = findShieldsChild(node)
+
+      // Check if the URL is a YouTube link. If so, get videoId
       const isYoutubeLink = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/.test(href)
-      // Compute videoId synchronously.
       const videoId = isYoutubeLink ? extractYouTubeId(href) : null
-
-      // Convert children to an array and check if any <img> has a shields.io URL.
-      const childrenArray = React.Children.toArray(children)
-      const containsShieldsBadge = childrenArray.some((child) => {
-        if (!excludeShieldsBadges) return false
-        if (React.isValidElement(child) && child.type === 'img') {
-          const imgSrc = child.props.src
-          return typeof imgSrc === 'string' && imgSrc.includes('shields.io')
-        }
-        return false
-      })
-
       useEffect(() => {
-        if (isYoutubeLink && videoId && !containsShieldsBadge) {
-          if (videoId !== youTubeVideoId) {
-            setYouTubeVideoId(videoId)
-          }
+        if (!shieldsChild && isYoutubeLink && videoId && videoId !== youTubeVideoId) {
+          setYouTubeVideoId(videoId)
         }
-      }, [href, isYoutubeLink, videoId, containsShieldsBadge, youTubeVideoId])
+      }, [shieldsChild, isYoutubeLink, videoId, youTubeVideoId])
 
-      // And immediately return null if it's a YouTube link with no shields badge.
-      if (isYoutubeLink && videoId && !containsShieldsBadge) {
+      // Render a button from any shields.io buttons
+      if (shieldsChild) {
+        const altText = typeof shieldsChild?.properties?.alt === 'string' ? shieldsChild.properties.alt.trim() : ''
+        const label = altText || title || href
+        const imageSrc = typeof shieldsChild?.properties?.src === 'string' ? shieldsChild.properties.src : null
+        return (
+          <DialogButton
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              fontSize: '12px',
+              padding: '0',
+              margin: '0',
+              background: imageSrc ? 'transparent' : '',
+            }}
+            onClick={() => openWeb(href)}
+          >
+            {imageSrc && <img src={imageSrc} alt={label} style={{ height: '16px' }} />}
+            {!imageSrc && label}
+          </DialogButton>
+        )
+      }
+
+      // Return nothing for YT links
+      if (isYoutubeLink && videoId) {
         return null
       }
 
-      // Otherwise, render the link normally.
-      return (
-        <a href={href} title={title} {...rest}>
-          {children}
-        </a>
-      )
+      // Return plain text for any other links (removing the link itself from that text)
+      return <>{renderChildrenWithLineBreaks(children)}</>
     },
   }
 
@@ -202,11 +251,6 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
     })
     .filter((entry) => entry !== null) as [string, string][]
 
-  const openWeb = (url: string) => {
-    Navigation.NavigateToExternalWeb(url)
-    Router.CloseSideMenus()
-  }
-
   return (
     <>
       <style>{`
@@ -242,20 +286,6 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
                 padding: 0;
                 margin: 3px 0px;
             }
-            .game-report-section-body ul {
-                list-style: none;
-                font-size: 12px;
-                padding: 0;
-                margin: 3px 0px;
-            }
-            .game-report-section-body li {
-                display: table;
-                text-align: right;
-                width: 100%;
-                border-bottom: 1px solid #333;
-                padding-top: 2px;
-                padding-bottom: 2px;
-            }
             .game-report-section-body strong {
                 display: table-cell;
                 text-align: left;
@@ -266,6 +296,32 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
                 display: table-cell;
                 text-align: left;
                 font-size: 12px;
+            }
+            .game-report-section-custom-list ul {
+                list-style: none;
+                font-size: 12px;
+                padding: 0;
+                margin: 3px 0px;
+            }
+            .game-report-section-custom-list li {
+                display: table;
+                text-align: right;
+                width: 100%;
+                border-bottom: 1px solid #333;
+                padding-top: 2px;
+                padding-bottom: 2px;
+            }
+            .additional-notes-section-body p {
+                margin: 10px 0px;
+            }
+            .additional-notes-section-body ul {
+                font-size: 12px;
+                padding: 0;
+                margin: 3px 0px 0px 13px;
+            }
+            .additional-notes-section-body li {
+                padding-top: 2px;
+                padding-bottom: 2px;
             }
             `}</style>
       <div>
@@ -461,7 +517,7 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
             {systemConfigurationData && systemConfigurationData.length > 0 && (
               <div className='game-report-section'>
                 <PanelSection title='System Configuration'>
-                  <div className='game-report-section-body'>
+                  <div className='game-report-section-body game-report-section-custom-list'>
                     <ul>
                       {systemConfigurationData.map(([key, value]) => (
                         <li key={key}>
@@ -479,7 +535,7 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
             {performanceSettingsData && performanceSettingsData.length > 0 && (
               <div className='game-report-section'>
                 <PanelSection title='Performance Settings'>
-                  <div className='game-report-section-body'>
+                  <div className='game-report-section-body game-report-section-custom-list'>
                     <ul>
                       {performanceSettingsData.map(([key, value]) => (
                         <li key={key}>
@@ -497,7 +553,7 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
             {gameReport && gameReport.data.game_display_settings && (
               <div className='game-report-section'>
                 <PanelSection title='Game Display Settings'>
-                  <div className='game-report-section-body'>
+                  <div className='game-report-section-body game-report-section-custom-list'>
                     <ReactMarkdown rehypePlugins={[rehypeSanitize]} components={markdownComponents}>
                       {gameReport.data.game_display_settings || ''}
                     </ReactMarkdown>
@@ -510,7 +566,7 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
             {gameReport && gameReport.data.game_graphics_settings && (
               <div className='game-report-section'>
                 <PanelSection title='Game Graphics Settings'>
-                  <div className='game-report-section-body'>
+                  <div className='game-report-section-body game-report-section-custom-list'>
                     <ReactMarkdown rehypePlugins={[rehypeSanitize]} components={markdownComponents}>
                       {gameReport.data.game_graphics_settings || ''}
                     </ReactMarkdown>
@@ -523,7 +579,7 @@ const GameReportView: React.FC<GameReportViewProps> = ({ gameReport, onGoBack, o
             {gameReport && gameReport.data.additional_notes && (
               <div className='game-report-section'>
                 <PanelSection title='Additional Notes'>
-                  <div className='game-report-section-body'>
+                  <div className='game-report-section-body additional-notes-section-body'>
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
                       rehypePlugins={[rehypeSanitize]}
