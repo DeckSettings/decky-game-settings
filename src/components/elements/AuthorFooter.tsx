@@ -18,13 +18,13 @@ const fetchAvatarImage = async (): Promise<string | null> => {
     }
     const res = await fetchNoCors(url, { method: 'GET' })
     if (!res.ok) {
-      console.error('Failed to fetch avatar image')
+      console.error('[decky-game-settings:AuthorFooter] Failed to fetch avatar image')
       return null
     }
     const blob = await res.blob()
     return URL.createObjectURL(blob)
   } catch (error) {
-    console.error('Error fetching avatar image:', error)
+    console.error('[decky-game-settings:AuthorFooter] Error fetching avatar image:', error)
     return null
   }
 }

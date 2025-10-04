@@ -239,7 +239,7 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
         })
         push()
         setFormDef({ ...def, sections })
-        console.log(`[decky-game-settings:CreateReportView] Generated report form sections: ${JSON.stringify(sections)}`)
+        //console.debug(`[decky-game-settings:CreateReportView] Generated report form sections: ${JSON.stringify(sections)}`)
       } catch { }
 
       setValues(initial)
@@ -322,7 +322,6 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
       if (err) ok = false
       if (err) newErrors[it.id] = err
     })
-    console.error(newErrors)
     setErrors(newErrors)
     if (!ok) {
       setSubmitError('Please correct the highlighted fields before submitting.')
@@ -334,10 +333,10 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
     let issueUrl: string | null = null
     try {
       if (editingIssueNumber) {
-        console.log(`[decky-game-settings:CreateReportView] Updating issue #${editingIssueNumber} with data: ${JSON.stringify(finalDraft)}`)
+        //console.debug(`[decky-game-settings:CreateReportView] Updating issue #${editingIssueNumber} with data: ${JSON.stringify(finalDraft)}`)
         issueUrl = await updateReportDraft(finalDraft, templateBody, editingIssueNumber)
       } else {
-        console.log(`[decky-game-settings:CreateReportView] Submitting report data: ${JSON.stringify(finalDraft)}`)
+        //console.debug(`[decky-game-settings:CreateReportView] Submitting report data: ${JSON.stringify(finalDraft)}`)
         issueUrl = await submitReportDraft(finalDraft, templateBody)
       }
       setSubmitError(null)

@@ -11,14 +11,12 @@ const QuickAccessMenuRouter: React.FC = () => {
   const [pageHistory, setPageHistory] = useState<PluginPage[]>(['game_select'])
   const currentPage = pageHistory[pageHistory.length - 1]
   const changePage = (page: PluginPage) => {
-    console.log(`[decky-game-settings:QuickAccessView] Changing page to: ${page}`)
     setPageHistory((prev) => [...prev, page])
   }
   const handleGoBack = () => {
     setPageHistory((prev) => {
       if (prev.length > 1) {
         const newHistory = prev.slice(0, prev.length - 1)
-        console.log(`[decky-game-settings:QuickAccessView] Going back to: ${newHistory[newHistory.length - 1]}`)
         return newHistory
       }
       return prev
@@ -27,7 +25,6 @@ const QuickAccessMenuRouter: React.FC = () => {
 
   const [gameSearchText, setGameSearchText] = useState<string>('')
   const handleSearch = (searchText: string) => {
-    console.log(`[decky-game-settings:QuickAccessView] Setting search text: ${searchText}`)
     setGameSearchText(searchText)
     setSelectedGame(null)
     changePage('search_results')
@@ -40,7 +37,6 @@ const QuickAccessMenuRouter: React.FC = () => {
   }
 
   useEffect(() => {
-    console.log(`[decky-game-settings:QuickAccessView] Current page changed to: ${currentPage}`)
   }, [currentPage])
 
   return (

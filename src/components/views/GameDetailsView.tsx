@@ -115,7 +115,6 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
 
   const [selectedReport, setSelectedReport] = useState<GameReport | ExternalReview | null>(null)
   const handleReportSelect = (gameReport: GameReport | ExternalReview) => {
-    console.log(`[decky-game-settings:GameDetailsView] Selected game report ${gameReport.title}`)
     setSelectedReport(gameReport)
   }
 
@@ -125,7 +124,6 @@ const GameDetailsView: React.FC<GameDetailsViewProps> = ({ gameName, appId, onGo
   }
 
   useEffect(() => {
-    console.log(`[decky-game-settings:GameDetailsView] Mounted with [appId: ${appId}, gameName: ${gameName}]`)
     fetchData()
   }, [appId, gameName])
 

@@ -164,7 +164,6 @@ const PluginConfigView: React.FC<PluginConfigViewProps> = ({ onGoBack }) => {
   )
 
   useEffect(() => {
-    console.log(`[decky-game-settings:PluginConfigView] Mounted`)
     updateDeviceList()
     const fetchProfile = async () => {
       const p = await gitHubUserProfile()

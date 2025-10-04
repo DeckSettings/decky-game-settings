@@ -40,12 +40,10 @@ const GameSelectView: React.FC<GameSelectViewProps> = ({ onGameSelect, onSearch,
   }
 
   const handleGameSelect = (game: GameInfo) => {
-    console.log(`[decky-game-settings:GameSelectView] Selected game [AppID:${game.appId}, Title:${game.title}]`)
     onGameSelect(game)
   }
 
   useEffect(() => {
-    console.log(`[decky-game-settings:GameSelectView] Mounted`)
     fetchInstalledGames()
   }, [])
 

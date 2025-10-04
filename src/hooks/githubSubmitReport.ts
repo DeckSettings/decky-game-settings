@@ -25,7 +25,7 @@ export const saveReportFormState = (key: string, state: Record<string, any>): vo
     all[key] = state
     window.localStorage.setItem(reportFormStatesKey, JSON.stringify(all))
   } catch (e) {
-    console.error('Failed to save report form state', e)
+    console.error('[decky-game-settings:githubSubmitReports] Failed to save report form state', e)
   }
 }
 
@@ -36,7 +36,7 @@ export const removeReportFromState = (key: string): void => {
     all[key] = null
     window.localStorage.setItem(reportFormStatesKey, JSON.stringify(all))
   } catch (e) {
-    console.error('Failed to save report form state', e)
+    console.error('[decky-game-settings:githubSubmitReports] Failed to save report form state', e)
   }
 }
 
@@ -70,7 +70,7 @@ export const submitReportDraft = async (payload: any, templateBody: any[]): Prom
     const url: string = issue.html_url
     return url
   } catch (e) {
-    console.error('[deckVerifiedApi] submitReportDraft failed', e)
+    console.error('[decky-game-settings:githubSubmitReports] submitReportDraft failed', e)
     throw e
   }
 }
@@ -99,7 +99,7 @@ export const updateReportDraft = async (
     const url: string = issue.html_url
     return url
   } catch (e) {
-    console.error('[deckVerifiedApi] updateReportDraft failed', e)
+    console.error('[decky-game-settings:githubSubmitReports] updateReportDraft failed', e)
     throw e
   }
 }
@@ -174,7 +174,7 @@ async function createIssueWithBody(title: string, body: string): Promise<GitHubI
       body: JSON.stringify({ title, body }),
     }, token)
   } catch (e) {
-    console.error('[githubSubmitReport] createIssueWithBody failed', e)
+    console.error('[decky-game-settings:githubSubmitReports] createIssueWithBody failed', e)
     return null
   }
 }
@@ -189,7 +189,7 @@ async function updateIssueBody(title: string, body: string, issueNumber: number)
       body: JSON.stringify({ title, body }),
     }, token)
   } catch (e) {
-    console.error('[githubSubmitReport] updateIssueBody failed', e)
+    console.error('[decky-game-settings:githubSubmitReports] updateIssueBody failed', e)
     return null
   }
 }

@@ -53,8 +53,6 @@ export const fetchSystemInfo = async (): Promise<SystemInfo | null> => {
       return null
     }
     const infoRaw = await sysApi?.GetSystemInfo()
-    try { console.log('[decky-game-settings:systemInfo] System info:', infoRaw) } catch { }
-
     // Add additionaal information from python backend
     let sysVendorResp = ''
     let isEmmc = false

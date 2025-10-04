@@ -25,7 +25,6 @@ const SearchResultsView: React.FC<SearchResultsViewProps> = ({ query, onGameSele
     setIsLoading(true)
     try {
       const results = await getGamesBySearchTerm(term)
-      console.log(`[decky-game-settings:SearchResultsView] Search Results: ${results}`)
       setSearchResults(results || [])
     } catch (error) {
       console.error('[decky-game-settings:SearchResultsView] Error fetching search results:', error)
@@ -35,7 +34,6 @@ const SearchResultsView: React.FC<SearchResultsViewProps> = ({ query, onGameSele
   }
 
   useEffect(() => {
-    console.log(`[decky-game-settings:SearchResultsView] Mounted with query: ${query}`)
     fetchSearchResults(query)
   }, [query])
 

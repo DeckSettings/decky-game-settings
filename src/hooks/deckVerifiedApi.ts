@@ -8,7 +8,7 @@ export const fetchGameDataByAppId = async (appId: number): Promise<GameDetails |
     method: 'GET',
   })
   if (!res.ok) {
-    console.error(`Failed to fetch games by app ID: ${res.status} ${res.statusText}`)
+    console.error(`[decky-game-settings:deckVerifiedApi] [decky-game-settings:deckVerifiedApi] Failed to fetch games by app ID: ${res.status} ${res.statusText}`)
     return null
   }
   return await res.json() as GameDetails
@@ -20,7 +20,7 @@ export const fetchGameDataByGameName = async (gameName: string): Promise<GameDet
     method: 'GET',
   })
   if (!res.ok) {
-    console.error(`Failed to fetch games by name: ${res.status} ${res.statusText}`)
+    console.error(`[decky-game-settings:deckVerifiedApi] Failed to fetch games by name: ${res.status} ${res.statusText}`)
     return null
   }
   return await res.json() as GameDetails
@@ -35,7 +35,7 @@ export const getGamesBySearchTerm = async (term: string): Promise<GameInfo[] | n
     method: 'GET',
   })
   if (!res.ok) {
-    console.error(`Failed to fetch games by search term: ${res.status} ${res.statusText}`)
+    console.error(`[decky-game-settings:deckVerifiedApi] Failed to fetch games by search term: ${res.status} ${res.statusText}`)
     return []
   }
   const data = await res.json() as GameSearchResult[]
@@ -55,14 +55,14 @@ export const fetchDeviceList = async (): Promise<Devices[]> => {
     method: 'GET',
   })
   if (!res.ok) {
-    console.error(`Failed to fetch report form details: ${res.status} ${res.statusText}`)
+    console.error(`[decky-game-settings:deckVerifiedApi] Failed to fetch report form details: ${res.status} ${res.statusText}`)
     return []
   }
 
   const issueLabels = await res.json()
 
   if (!Array.isArray(issueLabels)) {
-    console.error('Invalid issue labels data format')
+    console.error('[decky-game-settings:deckVerifiedApi] Invalid issue labels data format')
     return []
   }
 
@@ -98,7 +98,7 @@ export const fetchReportFormDefinition = async (): Promise<any | null> => {
       method: 'GET',
     })
     if (!res.ok) {
-      console.error(`Failed to fetch report form: ${res.status} ${res.statusText}`)
+      console.error(`[decky-game-settings:deckVerifiedApi] Failed to fetch report form: ${res.status} ${res.statusText}`)
       return null
     }
     const data = await res.json()
@@ -109,7 +109,7 @@ export const fetchReportFormDefinition = async (): Promise<any | null> => {
     }
     return data
   } catch (err) {
-    console.error('fetchReportFormDefinition error', err)
+    console.error('[decky-game-settings:deckVerifiedApi] fetchReportFormDefinition error', err)
     return null
   }
 }

@@ -56,7 +56,7 @@ export const popupLoginDialog = (onCloseCallback = () => { }) => {
               saveUserProfile(profile)
             } catch (e) {
               // Non-fatal if profile fetch fails; you can still proceed.
-              console.warn('[LoginDialog] Failed to fetch profile:', e)
+              console.warn('[decky-game-settings:LoginDialog] Failed to fetch profile:', e)
             }
             setStep('success')
             return

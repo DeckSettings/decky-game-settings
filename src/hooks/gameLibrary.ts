@@ -144,7 +144,6 @@ const getAppDisplayName = (appId: number | undefined): string | undefined => {
         const candidateId = app?.appid
         if (candidateId === appId || Number(candidateId) === appId) {
           found = app?.display_name
-          console.log(`[decky-game-settings:gameLibrary] Discovered App display name: ${found}`)
         }
       })
       if (found && typeof found === 'string' && found.trim().length > 0) return found.trim()
@@ -215,8 +214,7 @@ export const gameChangeActions = (): any | null => {
     const handle = SteamClient?.GameSessions?.RegisterForAppLifetimeNotifications(
       async (notification: AppLifetimeNotification) => {
         try {
-          console.log('[decky-game-settings:gameLibrary] AppLifetime notification:', notification)
-
+          //console.debug('[decky-game-settings:gameLibrary] AppLifetime notification:', notification)
           const config = getPluginConfig()
           const settings: NotificationSettings = {
             ...defaultNotificationSettings,

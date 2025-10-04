@@ -21,7 +21,7 @@ export const loadNotificationRecord = (): NotificationRecord => {
     const parsed = JSON.parse(raw)
     return typeof parsed === 'object' && parsed !== null ? (parsed as NotificationRecord) : {}
   } catch (error) {
-    console.error('Failed to parse notification record config:', error)
+    console.error('[decky-game-settings:constants] Failed to parse notification record config:', error)
     return {}
   }
 }
@@ -30,7 +30,7 @@ export const saveNotificationRecord = (record: NotificationRecord): void => {
   try {
     window.localStorage.setItem(notificationSettingsKey, JSON.stringify(record))
   } catch (error) {
-    console.error('Failed to save notification record config:', error)
+    console.error('[decky-game-settings:constants] Failed to save notification record config:', error)
   }
 }
 
@@ -108,7 +108,7 @@ export const getPluginConfig = (): PluginConfig => {
         ...parsedConfig,
       }
     } catch (error) {
-      console.error('Failed to parse plugin config:', error)
+      console.error('[decky-game-settings:constants] Failed to parse plugin config:', error)
     }
   }
   config.notificationSettings = {
@@ -136,9 +136,9 @@ export const setPluginConfig = (updates: Partial<PluginConfig>): void => {
   }
   try {
     window.localStorage.setItem(pluginSettingsKey, JSON.stringify(newConfig))
-    console.log('[decky-game-settings:constants] Plugin configuration updated:', newConfig)
+    //console.debug('[decky-game-settings:constants] Plugin configuration updated:', newConfig)
   } catch (error) {
-    console.error('Failed to save plugin config:', error)
+    console.error('[decky-game-settings:constants] Failed to save plugin config:', error)
   }
 }
 
