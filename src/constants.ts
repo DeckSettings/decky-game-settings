@@ -2,7 +2,7 @@
 import type { NotificationSettings, NotificationRecord, PluginConfig } from './interfaces'
 
 export const reportsApiBaseUrl = 'https://deckverified.games/deck-verified/api/v1'
-export const reportsWebsiteBaseUrl = 'https://deckverified.games/deck-verified'
+export const reportsWebsiteBaseUrl = 'https://deckverified.games'
 
 export const defaultNotificationSettings: NotificationSettings = {
   onGameStartWithReports: true,

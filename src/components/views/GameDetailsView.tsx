@@ -12,7 +12,7 @@ import { hasToken } from '../../hooks/githubAuth'
 import { popupLoginDialog } from '../elements/LoginDialog'
 import { fetchSystemInfo, inferDeviceLabel } from '../../hooks/systemInfo'
 
-const deckVerifiedIconSrc = 'https://deckverified.games/deck-verified/assets/logo-dark-DRV01ZBg.png'
+const deckVerifiedIconSrc = 'https://deckverified.games/decky-dv-reports-logo.png'
 
 export interface GameDetailsViewProps {
   gameName: string
