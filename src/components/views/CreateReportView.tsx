@@ -21,6 +21,13 @@ interface CreateReportViewProps {
 }
 
 
+const progressKeyframes = `
+@keyframes deckyReportSubmitProgress {
+  0% { background-position: 0% 0; }
+  100% { background-position: 200% 0; }
+}
+`
+
 const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGameName, defaultAppId }) => {
   const [formDef, setFormDef] = useState<any | null>(null)
   const [values, setValues] = useState<Record<string, string>>({})
@@ -29,6 +36,7 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
   const [formReady, setFormReady] = useState<boolean>(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [editingIssueNumber, setEditingIssueNumber] = useState<number | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
 
   // Refs to capture latest values for unmount cleanup - Not sure if there is a simpler way to do this...
   const valuesRef = useRef(values)
@@ -294,6 +302,7 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
   }, [])
 
   const handleSubmit = async () => {
+    if (isSubmitting) return
     if (!formDef) return
     const templateBody: any[] = formDef?.template?.body || []
     const items = templateBody.filter((x: any) => x && x.type !== 'markdown' && x.id)
@@ -328,6 +337,7 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
       return
     }
     setSubmitError(null)
+    setIsSubmitting(true)
     // Build final draft and submit or update
     const finalDraft: Record<string, any> = { ...nextValues, images: selectedImages }
     let issueUrl: string | null = null
@@ -344,6 +354,8 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
       const msg = (e?.message && typeof e.message === 'string') ? e.message : 'Submission failed. Please try again.'
       setSubmitError(msg)
       return
+    } finally {
+      setIsSubmitting(false)
     }
 
     // Clear saved draft from localStorage
@@ -411,6 +423,7 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
   return (
     <>
       <div>
+        <style>{progressKeyframes}</style>
         <div style={{ padding: '3px 16px 3px 16px', margin: 0 }}>
           <Focusable style={{ display: 'flex', alignItems: 'stretch', gap: '1rem' }} flow-children="horizontal">
             <DialogButton
@@ -668,23 +681,50 @@ const CreateReportView: React.FC<CreateReportViewProps> = ({ onGoBack, defaultGa
         overflow: 'hidden',
       }}>
 
-        <DialogButton
-          style={{
-            width: '100%',
-            minWidth: 0,
-            padding: '3px',
-            fontSize: '14px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginLeft: 'auto',
-            marginRight: 'auto',
-            gap: '0.5rem',
-          }}
-          onClick={handleSubmit} >
-          {editingIssueNumber ? <MdUpdate fill="#FF5E5E" /> : <MdSend fill="#FF5E5E" />}
-          {editingIssueNumber ? 'Update' : 'Submit'}
-        </DialogButton>
+        {isSubmitting ? (
+          <div
+            role="progressbar"
+            aria-label="Submitting report"
+            style={{
+              width: '100%',
+              minWidth: 0,
+              padding: '6px',
+              fontSize: '13px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginLeft: 'auto',
+              marginRight: 'auto',
+              gap: '0.35rem',
+              borderRadius: '3px',
+              background: 'linear-gradient(90deg, rgba(255,94,94,0.9), rgba(255,255,255,0.15), rgba(255,94,94,0.9))',
+              backgroundSize: '200% 100%',
+              animation: 'deckyReportSubmitProgress 1.4s linear infinite',
+              color: '#1a1a1a',
+              fontWeight: 600,
+            }}
+          >
+            Submitting...
+          </div>
+        ) : (
+          <DialogButton
+            style={{
+              width: '100%',
+              minWidth: 0,
+              padding: '3px',
+              fontSize: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginLeft: 'auto',
+              marginRight: 'auto',
+              gap: '0.5rem',
+            }}
+            onClick={handleSubmit} >
+            {editingIssueNumber ? <MdUpdate fill="#FF5E5E" /> : <MdSend fill="#FF5E5E" />}
+            {editingIssueNumber ? 'Update' : 'Submit'}
+          </DialogButton>
+        )}
       </div>
     </>
   )
