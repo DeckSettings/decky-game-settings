@@ -5,9 +5,10 @@ import { QRCodeSVG } from 'qrcode.react'
 
 type Step = 'init' | 'waiting' | 'success' | 'error'
 
-export const popupLoginDialog = (onCloseCallback = () => { }) => {
-  let closePopup = () => {
-  }
+const LOGIN_MODAL_CLASS = 'login-dialog-modal'
+
+export const popupLoginDialog = (onCloseCallback = () => {}) => {
+  let closePopup = () => {}
 
   const handleClose = () => {
     closePopup()
@@ -90,6 +91,7 @@ export const popupLoginDialog = (onCloseCallback = () => { }) => {
 
     return (
       <ConfirmModal
+        modalClassName={LOGIN_MODAL_CLASS}
         strTitle={
           <p
             style={{
@@ -110,6 +112,14 @@ export const popupLoginDialog = (onCloseCallback = () => { }) => {
       >
         <style>
           {`
+          .${LOGIN_MODAL_CLASS} .DialogContent {
+            width: min(750px, 88vw);
+          }
+
+          .${LOGIN_MODAL_CLASS} .DialogFooter {
+            display: none !important;
+          }
+
           @keyframes dv-indeterminate {
             0% { left: -40%; width: 40%; }
             50% { left: 20%; width: 60%; }
@@ -119,8 +129,8 @@ export const popupLoginDialog = (onCloseCallback = () => { }) => {
         </style>
 
         {step === 'waiting' && (
-          <div>
-            <p style={{ margin: '0 0 10px 0', opacity: 0.9 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, fontSize: 11 }}>
+            <p style={{ margin: '0 0 6px 0', opacity: 0.9 }}>
               Connect the Deck Settings plugin to your GitHub account to submit your own game reports directly from the
               plugin.
             </p>
@@ -128,87 +138,203 @@ export const popupLoginDialog = (onCloseCallback = () => { }) => {
               style={{
                 display: 'flex',
                 gap: 12,
-                alignItems: 'center',
-                justifyContent: 'space-between',
+                alignItems: 'stretch',
+                padding: 0,
               }}
             >
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ margin: '0 0 6px 0' }}>Enter this code:</p>
-                <div
-                  style={{
-                    fontSize: 28,
-                    fontWeight: 700,
-                    letterSpacing: 2,
-                    padding: '8px 10px',
-                    borderRadius: 6,
-                    background: 'rgba(255,255,255,0.06)',
-                    display: 'inline-block',
-                  }}
-                >
-                  {userCode}
+                <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        textTransform: 'uppercase',
+                        letterSpacing: 0.8,
+                        opacity: 0.7,
+                        marginBottom: 4,
+                      }}
+                    >
+                      Step 1
+                    </div>
+
+                    <p style={{ margin: '0 0 6px' }}>
+                      Open the URL blow in your browser or scan the QR code to the right.
+                      <br />
+                      <span style={{ fontFamily: 'monospace', fontStyle: 'italic' }}>{verifyUrl}</span>
+                    </p>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                      <div>
+                        <div
+                          style={{
+                            fontSize: 12,
+                            textTransform: 'uppercase',
+                            letterSpacing: 0.8,
+                            opacity: 0.7,
+                            marginBottom: 4,
+                          }}
+                        >
+                          Step 2
+                        </div>
+                        <p style={{ margin: '0 0 6px' }}>Enter this code:</p>
+                      </div>
+
+                      <div
+                        style={{
+                          fontSize: 20,
+                          fontWeight: 700,
+                          fontFamily: 'monospace',
+                          letterSpacing: 2,
+                          padding: '8px 10px',
+                          borderRadius: 6,
+                          background: 'rgba(100,255,100,0.25)',
+                          display: 'inline-block',
+                        }}
+                      >
+                        {userCode}
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      padding: 8,
+                      borderRadius: 6,
+                      background: 'rgba(100,255,100,0.25)',
+                    }}
+                  >
+                    <QRCodeSVG value={verifyUrl} size={100} marginSize={2} />
+                  </div>
                 </div>
 
                 <div
                   style={{
-                    fontSize: 12,
+                    fontSize: 10,
                     lineHeight: 1.4,
-                    margin: "8px 0",
-                    padding: "8px",
-                    borderRadius: 6,
-                    background: "rgba(255,255,255,0.04)",
+                    padding: '3px 6px',
+                    marginTop: 3,
+                    borderRadius: 3,
+                    background: 'rgba(255,190,140,0.04)',
+                    border: '1px solid rgba(255,190,140,0.5)',
                   }}
                 >
-                  <strong>Granted Permissions:</strong> This plugin uses
-                  GitHub Device Authorization with a "Deck
-                  Settings" owned GitHub App. The token granted is
-                  limited to reading repository metadata and
-                  creating/updating issues. It only applies to the
-                  https://github.com/DeckSettings/game-reports-steamos
-                  repository. The plugin cannot access your private
-                  repositories or make changes elsewhere on your
+                  <strong>Granted Permissions:</strong> This plugin uses GitHub Device Authorization with a "Deck
+                  Settings" owned GitHub App. The token granted is limited to reading repository metadata and
+                  creating/updating issues, and only applies to the https://github.com/DeckSettings/game-reports-steamos
+                  repository. The plugin cannot access your private repositories or make changes elsewhere on your
                   GitHub account with the issued token.
                 </div>
               </div>
-
-              <div style={{ flexShrink: 0 }}>
-                <QRCodeSVG value={verifyUrl} size={160} marginSize={4} />
-              </div>
             </div>
-            <div style={{ marginTop: 14 }}>
-              <div style={{ fontSize: 12, opacity: 0.8, margin: '0 0 6px 1px' }}>waiting for auth…</div>
-              <div
-                style={{
-                  position: 'relative',
-                  height: 6,
-                  borderRadius: 4,
-                  overflow: 'hidden',
-                  background: 'rgba(255,255,255,0.12)',
-                }}
-              >
+
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 16,
+              }}
+            >
+              <div style={{ flex: 7, minWidth: 0 }}>
+                <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 6 }}>waiting for auth…</div>
                 <div
                   style={{
-                    position: 'absolute',
-                    top: 0,
-                    bottom: 0,
-                    left: 0,
-                    width: '40%',
-                    background: 'rgba(255,255,255,0.35)',
+                    position: 'relative',
+                    height: 6,
                     borderRadius: 4,
-                    animation: 'dv-indeterminate 1.2s linear infinite',
+                    overflow: 'hidden',
+                    background: 'rgba(255,255,255,0.12)',
                   }}
-                />
+                >
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      bottom: 0,
+                      left: 0,
+                      width: '40%',
+                      background: 'rgba(255,255,255,0.35)',
+                      borderRadius: 4,
+                      animation: 'dv-indeterminate 1.2s linear infinite',
+                    }}
+                  />
+                </div>
+              </div>
+              <div style={{ flex: 3, display: 'flex', justifyContent: 'flex-end' }}>
+                <button
+                  type='button'
+                  onClick={handleClose}
+                  style={{
+                    padding: '8px 16px',
+                    background: '#1a9fff',
+                    color: '#fff',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    minWidth: 120,
+                  }}
+                >
+                  Cancel
+                </button>
               </div>
             </div>
           </div>
         )}
+
         {step === 'success' && (
-          <div style={{ margin: '8px 10px' }}>
-            <p>✅ Connected! You can now submit reports directly to GitHub from this Decky Plugin.</p>
+          <div
+            style={{
+              margin: '12px 0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 16,
+            }}
+          >
+            <p style={{ margin: 0 }}>
+              ✅ Connected! You can now submit reports directly to GitHub from this Decky Plugin.
+            </p>
+            <button
+              type='button'
+              onClick={handleClose}
+              style={{
+                padding: '8px 16px',
+                background: '#1a9fff',
+                color: '#fff',
+                fontWeight: 600,
+                cursor: 'pointer',
+                minWidth: 120,
+              }}
+            >
+              Close
+            </button>
           </div>
         )}
+
         {step === 'error' && (
-          <div style={{ margin: '8px 10px' }}>
-            <p>❌ {msg || 'Something went wrong.'}</p>
+          <div
+            style={{
+              margin: '12px 0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 16,
+            }}
+          >
+            <p style={{ margin: 0 }}>❌ {msg || 'Something went wrong.'}</p>
+            <button
+              type='button'
+              onClick={handleClose}
+              style={{
+                padding: '8px 16px',
+                background: '#1a9fff',
+                color: '#fff',
+                fontWeight: 600,
+                cursor: 'pointer',
+                minWidth: 120,
+              }}
+            >
+              Close
+            </button>
           </div>
         )}
       </ConfirmModal>
