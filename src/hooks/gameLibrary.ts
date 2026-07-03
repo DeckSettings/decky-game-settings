@@ -156,7 +156,7 @@ const getAppDisplayName = (appId: number | undefined): string | undefined => {
 
 // Cache data
 type NotificationCacheEntry = {
-  value: { hasReports: boolean; gameName: string }
+  value: { hasReports: boolean; gameName: string; fetchFailed: boolean }
   cachedAt: number
 }
 const gameNotificationCache = new Map<number, NotificationCacheEntry>()
@@ -177,6 +177,9 @@ const resolveGameNotificationInfo = async (appId: number, assumedGameName?: stri
 
   // Check for reports
   let hasReports = false
+  // Track whether the fetch itself failed (e.g. the deck is offline). This is
+  // distinct from a successful fetch that returned no reports.
+  let fetchFailed = false
   try {
     let details = appId ? await fetchGameDataByAppId(appId) : null
     if (!details && gameName) {
@@ -188,6 +191,7 @@ const resolveGameNotificationInfo = async (appId: number, assumedGameName?: stri
     }
   } catch (error) {
     console.error('[decky-game-settings:gameLibrary] Failed to fetch game details for notifications', error)
+    fetchFailed = true
   }
 
   // Fallback to using AppID in results
@@ -195,9 +199,12 @@ const resolveGameNotificationInfo = async (appId: number, assumedGameName?: stri
     gameName = `App ${appId || 'Unknown'}`
   }
 
-  const result = { hasReports, gameName }
-  // Cache results before returing
-  gameNotificationCache.set(appId, { value: result, cachedAt: now })
+  const result = { hasReports, gameName, fetchFailed }
+  // Cache results before returing. Do not cache a failed fetch so we re-check
+  // once connectivity is restored.
+  if (!fetchFailed) {
+    gameNotificationCache.set(appId, { value: result, cachedAt: now })
+  }
   return result
 }
 
@@ -234,7 +241,14 @@ export const gameChangeActions = (): any | null => {
           }
 
           const assumedGameName = (isStart ? runningDisplayName : gameNamesCache.get(appId)) ?? getAppDisplayName(appId)
-          const { hasReports, gameName } = await resolveGameNotificationInfo(appId, assumedGameName)
+          const { hasReports, gameName, fetchFailed } = await resolveGameNotificationInfo(appId, assumedGameName)
+
+          // If we couldn't reach the API (e.g. the deck is offline) we cannot
+          // know whether reports exist, so stay silent rather than falsely
+          // reporting "No Reports".
+          if (fetchFailed) {
+            return
+          }
 
           const eventKey: NotificationEventKey = isStart
             ? hasReports
